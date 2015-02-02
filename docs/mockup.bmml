@@ -1,0 +1,94 @@
+<?xml version="1.0"?>
+<mockup version="1.0" skin="sketch" fontFace="Balsamiq Sans" measuredW="1343" measuredH="705" mockupW="1203" mockupH="663">
+  <controls>
+    <control controlID="0" controlTypeID="com.balsamiq.mockups::Calendar" x="215" y="208" w="96" h="96" measuredW="96" measuredH="96" zOrder="3" locked="false" isInGroup="-1"/>
+    <control controlID="2" controlTypeID="com.balsamiq.mockups::TitleWindow" x="140" y="42" w="1203" h="663" measuredW="450" measuredH="400" zOrder="0" locked="false" isInGroup="-1">
+      <controlProperties>
+        <text>nofatty</text>
+      </controlProperties>
+    </control>
+    <control controlID="3" controlTypeID="com.balsamiq.mockups::TitleWindow" x="193" y="164" w="-1" h="-1" measuredW="450" measuredH="400" zOrder="2" locked="false" isInGroup="-1">
+      <controlProperties>
+        <text>input</text>
+      </controlProperties>
+    </control>
+    <control controlID="4" controlTypeID="com.balsamiq.mockups::TitleWindow" x="862" y="208" w="-1" h="-1" measuredW="450" measuredH="400" zOrder="13" locked="false" isInGroup="-1">
+      <controlProperties>
+        <text>chart%20B</text>
+      </controlProperties>
+    </control>
+    <control controlID="8" controlTypeID="com.balsamiq.mockups::LineChart" x="862" y="237" w="450" h="348" measuredW="187" measuredH="175" zOrder="14" locked="false" isInGroup="-1"/>
+    <control controlID="9" controlTypeID="com.balsamiq.mockups::Label" x="326" y="252" w="53" h="-1" measuredW="40" measuredH="21" zOrder="4" locked="false" isInGroup="-1">
+      <controlProperties>
+        <text>weight</text>
+      </controlProperties>
+    </control>
+    <control controlID="10" controlTypeID="com.balsamiq.mockups::TextInput" x="379" y="249" w="247" h="-1" measuredW="79" measuredH="26" zOrder="5" locked="false" isInGroup="-1">
+      <controlProperties>
+        <text/>
+      </controlProperties>
+    </control>
+    <control controlID="11" controlTypeID="com.balsamiq.mockups::SubTitle" x="326" y="208" w="-1" h="-1" measuredW="188" measuredH="27" zOrder="6" locked="false" isInGroup="-1">
+      <controlProperties>
+        <text>February%202%2C%202015</text>
+      </controlProperties>
+    </control>
+    <control controlID="12" controlTypeID="com.balsamiq.mockups::Label" x="326" y="283" w="53" h="-1" measuredW="25" measuredH="21" zOrder="7" locked="false" isInGroup="-1">
+      <controlProperties>
+        <text>kcal</text>
+      </controlProperties>
+    </control>
+    <control controlID="13" controlTypeID="com.balsamiq.mockups::TextInput" x="379" y="280" w="91" h="-1" measuredW="82" measuredH="27" zOrder="8" locked="false" isInGroup="-1">
+      <controlProperties>
+        <state>disabled</state>
+        <text>%28automatic%29</text>
+      </controlProperties>
+    </control>
+    <control controlID="14" controlTypeID="com.balsamiq.mockups::Label" x="485" y="283" w="45" h="-1" measuredW="15" measuredH="21" zOrder="9" locked="false" isInGroup="-1">
+      <controlProperties>
+        <text>fat</text>
+      </controlProperties>
+    </control>
+    <control controlID="15" controlTypeID="com.balsamiq.mockups::TextInput" x="530" y="280" w="96" h="-1" measuredW="82" measuredH="27" zOrder="10" locked="false" isInGroup="-1">
+      <controlProperties>
+        <state>disabled</state>
+        <text>%28automatic%29</text>
+      </controlProperties>
+    </control>
+    <control controlID="17" controlTypeID="com.balsamiq.mockups::TitleWindow" x="786" y="136" w="-1" h="-1" measuredW="450" measuredH="400" zOrder="11" locked="false" isInGroup="-1">
+      <controlProperties>
+        <text>chart%20A</text>
+      </controlProperties>
+    </control>
+    <control controlID="18" controlTypeID="com.balsamiq.mockups::LineChart" x="786" y="165" w="450" h="348" measuredW="187" measuredH="175" zOrder="12" locked="false" isInGroup="-1"/>
+    <control controlID="21" controlTypeID="com.balsamiq.mockups::DataGrid" x="215" y="326" w="179" h="195" measuredW="174" measuredH="85" zOrder="15" locked="false" isInGroup="-1">
+      <controlProperties>
+        <rowHeight>16</rowHeight>
+        <text>Time%2CProduct%2CGrams%0A11%3A30%2Capple%2C257%0A%2Cgranola%2C20%0A16%3A45%2Cgorgonzola%2C50%0A21%3A00%2Cgrapefruit%2C313</text>
+      </controlProperties>
+    </control>
+    <control controlID="22" controlTypeID="com.balsamiq.mockups::ModalScreen" x="140" y="85" w="1203" h="595" measuredW="320" measuredH="240" zOrder="1" locked="false" isInGroup="-1"/>
+    <control controlID="23" controlTypeID="com.balsamiq.mockups::DataGrid" x="401" y="326" w="224" h="195" measuredW="174" measuredH="21" zOrder="16" locked="false" isInGroup="-1">
+      <controlProperties>
+        <rowHeight>16</rowHeight>
+        <text>kcal%2Cprot.%2Cfat%2Ccarb.%2Cfib.</text>
+      </controlProperties>
+    </control>
+    <control controlID="24" controlTypeID="com.balsamiq.mockups::HSplitter" x="391" y="326" w="-1" h="195" measuredW="11" measuredH="100" zOrder="17" locked="false" isInGroup="-1"/>
+    <control controlID="25" controlTypeID="com.balsamiq.mockups::MenuBar" x="140" y="64" w="1203" h="29" measuredW="201" measuredH="29" zOrder="18" locked="false" isInGroup="-1">
+      <controlProperties>
+        <text>chart%20A%2Cchart%20B%2Cchart%20C</text>
+      </controlProperties>
+    </control>
+    <control controlID="26" controlTypeID="com.balsamiq.mockups::StickyNote" x="663" y="136" w="-1" h="-1" measuredW="109" measuredH="123" zOrder="19" locked="false" isInGroup="-1">
+      <controlProperties>
+        <text>What%20about%20product%20editing%3F</text>
+      </controlProperties>
+    </control>
+    <control controlID="27" controlTypeID="com.balsamiq.mockups::StickyNote" x="663" y="288" w="-1" h="-1" measuredW="109" measuredH="123" zOrder="20" locked="false" isInGroup="-1">
+      <controlProperties>
+        <text>We%u2019d%20like%20to%20have%20basic%20and%20compound%20products.</text>
+      </controlProperties>
+    </control>
+  </controls>
+</mockup>
