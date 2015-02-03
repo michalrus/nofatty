@@ -6,7 +6,8 @@ lazy val root = (
     libraryDependencies ++= Seq(
       D.ScalaTest % "test",
       D.ScalaCheck % "test",
-      D.JFreeChart
+      D.JFreeChart,
+      D.JCalendar
     )
   )
 )
