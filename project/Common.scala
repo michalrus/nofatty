@@ -5,8 +5,8 @@ import wartremover.WartRemover.autoImport._
 object Common {
 
   val settings = Seq(
-    organization := "us",
-    name := "api",
+    organization := "com.michalrus",
+    name := "nofatty",
 
     scalaVersion := "2.11.5",
     scalacOptions in Compile ++= Seq("-deprecation", "-feature", "-unchecked", "-Xlint",
