@@ -5,7 +5,8 @@ lazy val root = (
     resolvers += R.Spray,
     libraryDependencies ++= Seq(
       D.ScalaTest % "test",
-      D.ScalaCheck % "test"
+      D.ScalaCheck % "test",
+      D.JFreeChart
     )
   )
 )
