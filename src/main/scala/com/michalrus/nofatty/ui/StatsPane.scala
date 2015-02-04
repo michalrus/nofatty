@@ -14,17 +14,23 @@ class StatsPane extends JPanel {
 
     val mass = protein + fat + carbohydrate + fiber
 
-    pProtein setText f"${100.0 * protein / mass}%.1f%%"
-    pFat setText f"${100.0 * fat / mass}%.1f%%"
-    pCarbohydrate setText f"${100.0 * carbohydrate / mass}%.1f%%"
-    pFiber setText f"${100.0 * fiber / mass}%.1f%%"
+    if (mass != 0.0) {
+      pProtein setText f"${100.0 * protein / mass}%.1f%%"
+      pFat setText f"${100.0 * fat / mass}%.1f%%"
+      pCarbohydrate setText f"${100.0 * carbohydrate / mass}%.1f%%"
+      pFiber setText f"${100.0 * fiber / mass}%.1f%%"
+    }
+    else Set(pProtein, pFat, pCarbohydrate, pFiber) foreach (_ setText "")
 
     val divisor = protein
 
-    rProtein setText f"${protein / divisor}%.2f"
-    rFat setText f"${fat / divisor}%.2f"
-    rCarbohydrate setText f"${carbohydrate / divisor}%.2f"
-    rFiber setText f"${fiber / divisor}%.2f"
+    if (divisor != 0.0) {
+      rProtein setText f"${protein / divisor}%.2f"
+      rFat setText f"${fat / divisor}%.2f"
+      rCarbohydrate setText f"${carbohydrate / divisor}%.2f"
+      rFiber setText f"${fiber / divisor}%.2f"
+    }
+    else Set(rProtein, rFat, rCarbohydrate, rFiber) foreach (_ setText "")
   }
 
   private[this] val lKcal, lProtein, lFat, lCarbohydrate, lFiber = new JLabel
