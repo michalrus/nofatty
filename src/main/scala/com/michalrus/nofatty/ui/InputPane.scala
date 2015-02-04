@@ -3,7 +3,7 @@ package com.michalrus.nofatty.ui
 import java.awt._
 import javax.swing._
 
-import com.toedter.calendar.{ JDateChooser, JCalendar }
+import com.toedter.calendar.JDateChooser
 
 class InputPane extends JPanel {
 
@@ -11,14 +11,17 @@ class InputPane extends JPanel {
 
   val prevDay = new JButton("«")
   val nextDay = new JButton("»")
-  val day = new JDateChooser(new java.util.Date)
-  val table = new JTable(Array(Array("13:15": AnyRef, "granola", "25")), Array("Hour": AnyRef, "Product", "Grams"))
-  val weight = new JTextField
+  val date = new JDateChooser(new java.util.Date)
+  val table = new JTable(Array(Array("13:15": AnyRef, "granola", "25")), Array("Hour": AnyRef, "Product", "Grams")) with NormalTabAction
+  val weight = new JTextField with SelectAllOnFocus
   val stats = new StatsPane
+  val time = new JTextField with SelectAllOnFocus
 
   stats.setData(1530, 130.1, 40.7, 10.2, 10.8)
 
   layout()
+
+  edt { weight.requestFocus() }
 
   private[this] def layout(): Unit = {
     table.setFillsViewportHeight(true)
@@ -37,7 +40,7 @@ class InputPane extends JPanel {
     c.insets = new Insets(5, 0, 5, 0)
     c.gridx += 1
     c.weightx = 1.0
-    add(day, c)
+    add(date, c)
 
     c.insets = new Insets(5, 0, 5, 5)
     c.gridx += 1
@@ -53,6 +56,10 @@ class InputPane extends JPanel {
     c.insets = new Insets(10, 5, 15, 5)
     c.gridy += 1
     add(stats, c)
+
+    c.insets = new Insets(5, 5, 5, 5)
+    c.gridy += 1
+    add(time, c)
 
     c.gridy += 1
     c.insets = new Insets(5, 5, 0, 5)
