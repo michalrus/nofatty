@@ -5,6 +5,8 @@ import javax.swing._
 
 import com.toedter.calendar.JDateChooser
 
+import scala.util.Try
+
 class InputPane extends JPanel {
 
   setOpaque(false)
@@ -13,9 +15,33 @@ class InputPane extends JPanel {
   val nextDay = new JButton("»")
   val date = new JDateChooser(new java.util.Date)
   val table = new JTable(Array(Array("13:15": AnyRef, "granola", "25")), Array("Hour": AnyRef, "Product", "Grams")) with NormalTabAction
-  val weight = new JTextField with SelectAllOnFocus
+  val weight = new JTextField with SelectAllOnFocus with StringVerifier {
+    override def verify(input: String): Option[String] =
+      if (input.trim.isEmpty) Some("")
+      else Try(input.trim.replace(',', '.').toDouble).toOption filterNot (_ < 0.0) map (v ⇒ f"$v%.2f")
+  }
   val stats = new StatsPane
-  val time = new JTextField with SelectAllOnFocus
+
+  val TimeRegex = """^(\d\d?):(\d\d)$""".r
+  val time = new JTextField with SelectAllOnFocus with StringVerifier {
+    override def verify(input: String): Option[String] = {
+      if (input.trim.isEmpty) Some("")
+      else TimeRegex.findFirstMatchIn(input) flatMap (m ⇒ Try((m.group(1).toInt, m.group(2).toInt)).toOption) flatMap {
+        case (hh, mm) if 0 <= hh && hh <= 23 && 0 <= mm && mm <= 59 ⇒ Some(f"$hh%02d:$mm%02d")
+        case _ ⇒ None
+      }
+    }
+  }
+
+  val grams = new JTextField with SelectAllOnFocus with StringVerifier {
+    override def verify(input: String): Option[String] =
+      if (input.trim.isEmpty) Some("")
+      else Try(input.trim.replace(',', '.').toDouble).toOption filterNot (_ < 0.0) map (v ⇒ f"$v%.2f")
+  }
+
+  val product = new JTextField with SelectAllOnFocus
+
+  val normalJTextFieldBackground = weight.getBackground
 
   stats.setData(1530, 130.1, 40.7, 10.2, 10.8)
 
@@ -57,13 +83,13 @@ class InputPane extends JPanel {
     c.gridy += 1
     add(stats, c)
 
-    c.insets = new Insets(5, 5, 5, 5)
-    c.gridy += 1
-    add(time, c)
-
     c.gridy += 1
     c.insets = new Insets(5, 5, 0, 5)
     add(table.getTableHeader, c)
+
+    c.insets = new Insets(5, 5, 5, 5)
+    c.gridy += 1
+    add(insertLayout(), c)
 
     c.gridy += 1
     c.insets = new Insets(0, 5, 5, 5)
@@ -79,6 +105,24 @@ class InputPane extends JPanel {
 
     { val _ = pane.add(new JLabel("Weight [kg]:")) }
     { val _ = pane.add(weight) }
+
+    pane
+  }
+
+  private[this] def insertLayout(): JPanel = {
+    val pane = new JPanel
+    pane.setOpaque(false)
+    pane.setLayout(new BorderLayout)
+
+    edt {
+      val sz = new Dimension(time.getHeight * 2, 0)
+      time.setPreferredSize(sz)
+      grams.setPreferredSize(sz)
+    }
+
+    pane.add(time, BorderLayout.LINE_START)
+    pane.add(product, BorderLayout.CENTER)
+    pane.add(grams, BorderLayout.LINE_END)
 
     pane
   }
