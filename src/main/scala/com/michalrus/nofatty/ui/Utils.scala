@@ -1,9 +1,10 @@
 package com.michalrus.nofatty.ui
 
-import java.awt.{ Color, KeyboardFocusManager }
 import java.awt.event.{ FocusEvent, FocusListener }
+import java.awt.{ Color, Component, Insets, KeyboardFocusManager }
+import javax.swing._
 import javax.swing.event.{ DocumentEvent, DocumentListener }
-import javax.swing.{ InputVerifier, KeyStroke, JComponent }
+import javax.swing.table.TableCellEditor
 import javax.swing.text.JTextComponent
 
 trait SelectAllOnFocus { self: JTextComponent ⇒
@@ -46,6 +47,7 @@ trait NormalTabAction { self: JComponent ⇒
 
     { val _ = forward.add(KeyStroke.getKeyStroke("TAB")) }
     self.setFocusTraversalKeys(KeyboardFocusManager.FORWARD_TRAVERSAL_KEYS, forward)
+
     val backward = new java.util.HashSet(
       self.getFocusTraversalKeys(KeyboardFocusManager.BACKWARD_TRAVERSAL_KEYS))
 
@@ -53,4 +55,26 @@ trait NormalTabAction { self: JComponent ⇒
     self.setFocusTraversalKeys(KeyboardFocusManager.BACKWARD_TRAVERSAL_KEYS, backward)
   }
 
+}
+
+final class VerifyingCellEditor(verify: String ⇒ Option[String]) extends AbstractCellEditor with TableCellEditor { self ⇒
+  private[this] val tf = new JTextField with SelectAllOnFocus with StringVerifier {
+    override def verify(input: String): Option[String] = self.verify(input)
+  }
+
+  tf.setBorder(BorderFactory.createEmptyBorder)
+
+  override def getTableCellEditorComponent(table: JTable, value: Any, isSelected: Boolean, row: Int, column: Int): Component = {
+    tf.setText(value.toString)
+    tf
+  }
+
+  override def getCellEditorValue: AnyRef = tf.verify(tf.getText) getOrElse ""
+
+  override def stopCellEditing(): Boolean =
+    if (tf.verify(tf.getText).isDefined) {
+      fireEditingStopped()
+      true
+    }
+    else false
 }

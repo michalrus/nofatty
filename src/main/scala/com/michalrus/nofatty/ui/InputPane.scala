@@ -2,6 +2,7 @@ package com.michalrus.nofatty.ui
 
 import java.awt._
 import javax.swing._
+import javax.swing.table.DefaultTableCellRenderer
 
 import com.toedter.calendar.JDateChooser
 
@@ -19,24 +20,49 @@ class InputPane extends JPanel {
   val weight = new JTextField with SelectAllOnFocus with StringVerifier {
     override def verify(input: String): Option[String] =
       if (input.trim.isEmpty) Some("")
-      else Try(input.trim.replace(',', '.').toDouble).toOption filterNot (_ < 0.0) map (v ⇒ f"$v%.2f")
+      else Try(input.trim.replace(',', '.').toDouble).toOption filterNot (_ < 0.0) map (v ⇒ f"$v%.1f")
   }
 
   val table: JTable = {
     val cols: Array[AnyRef] = Array("Time", "Product", "Grams")
     val data: Array[Array[AnyRef]] = Array(
-      Array("13:15", "granola", "25"),
-      Array("15:00", "apple", "301"),
-      Array("18:20", "chocolate, 55%", "36")
+      Array("13:15", "granola", "25.0"),
+      Array("15:00", "apple", "301.0"),
+      Array("18:20", "chocolate 55%", "36.0")
     )
 
-    val t = new JTable(data, cols) with NormalTabAction
+    val t = new JTable(data, cols) //with NormalTabAction
+    t.setShowGrid(false)
     t.setRowSelectionAllowed(false)
     t.setColumnSelectionAllowed(false)
     t.getTableHeader.setReorderingAllowed(false)
     t.getTableHeader.setResizingAllowed(false)
-    t.getColumnModel.getColumn(0).setMaxWidth(50)
-    t.getColumnModel.getColumn(2).setMaxWidth(50)
+    t.setRowHeight(30)
+
+    val colTime = t.getColumnModel.getColumn(0)
+    //val colProduct = t.getColumnModel.getColumn(1)
+    val colGrams = t.getColumnModel.getColumn(2)
+
+    colTime.setMaxWidth(50)
+    colGrams.setMaxWidth(60)
+
+    val TimeRegex = """^(\d\d?):(\d\d)$""".r
+
+    colTime.setCellEditor(new VerifyingCellEditor(input ⇒
+      TimeRegex.findFirstMatchIn(input) flatMap (m ⇒ Try((m.group(1).toInt, m.group(2).toInt)).toOption) flatMap {
+        case (hh, mm) if 0 <= hh && hh <= 23 && 0 <= mm && mm <= 59 ⇒ Some(f"$hh%02d:$mm%02d")
+        case _ ⇒ None
+      }
+    ))
+
+    colGrams.setCellEditor(new VerifyingCellEditor(input ⇒
+      Try(input.trim.replace(',', '.').toDouble).toOption filterNot (_ < 0.0) map (v ⇒ f"$v%.1f")
+    ))
+    colGrams.setCellRenderer({
+      val r = new DefaultTableCellRenderer
+      r.setHorizontalAlignment(SwingConstants.RIGHT)
+      r
+    })
 
     t
   }
@@ -85,7 +111,9 @@ class InputPane extends JPanel {
     c.insets = new Insets(0, 5, 5, 5)
     c.weighty = 1.0
     c.fill = GridBagConstraints.BOTH
-    add(new JScrollPane(table), c)
+    val sp = new JScrollPane(table)
+    sp.setBorder(BorderFactory.createEmptyBorder)
+    add(sp, c)
   }
 
   private[this] def weightLayout(): JPanel = {
