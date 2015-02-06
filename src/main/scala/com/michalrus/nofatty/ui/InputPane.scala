@@ -4,13 +4,15 @@ import java.awt._
 import javax.swing._
 import javax.swing.table.DefaultTableCellRenderer
 
+import org.joda.time.LocalDate
+
 import scala.util.Try
 
 class InputPane extends JPanel {
 
   setOpaque(false)
 
-  val date = new DateInput
+  val date = new LocalDateInput(LocalDate.now, _ ⇒ ())
   val stats = new StatsPane
 
   val weight = new JTextField with SelectAllOnFocus with StringVerifier {

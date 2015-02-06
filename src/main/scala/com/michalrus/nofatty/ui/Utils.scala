@@ -1,7 +1,7 @@
 package com.michalrus.nofatty.ui
 
 import java.awt.event.{ FocusEvent, FocusListener }
-import java.awt.{ Color, Component, Insets, KeyboardFocusManager }
+import java.awt.{ Color, Component, KeyboardFocusManager }
 import javax.swing._
 import javax.swing.event.{ DocumentEvent, DocumentListener }
 import javax.swing.table.TableCellEditor
