@@ -4,17 +4,13 @@ import java.awt._
 import javax.swing._
 import javax.swing.table.DefaultTableCellRenderer
 
-import com.toedter.calendar.JDateChooser
-
 import scala.util.Try
 
 class InputPane extends JPanel {
 
   setOpaque(false)
 
-  val prevDay = new JButton("«")
-  val nextDay = new JButton("»")
-  val date = new JDateChooser(new java.util.Date)
+  val date = new DateInput
   val stats = new StatsPane
 
   val weight = new JTextField with SelectAllOnFocus with StringVerifier {
@@ -79,41 +75,31 @@ class InputPane extends JPanel {
     setLayout(new GridBagLayout)
 
     val c = new GridBagConstraints
-    c.insets = new Insets(5, 5, 5, 0)
-    c.weighty = 0.0
-    c.weightx = 0.0
     c.gridx = 0
     c.gridy = 0
-    c.fill = GridBagConstraints.HORIZONTAL
-    add(prevDay, c)
-
-    c.insets = new Insets(5, 0, 5, 0)
-    c.gridx += 1
+    c.insets = new Insets(5, 5, 5, 5)
+    c.weighty = 0.0
     c.weightx = 1.0
+    c.fill = GridBagConstraints.HORIZONTAL
     add(date, c)
 
-    c.insets = new Insets(5, 0, 5, 5)
-    c.gridx += 1
-    c.weightx = 0.0
-    add(nextDay, c)
-
-    c.insets = new Insets(5, 5, 5, 5)
-    c.gridx = 0
     c.gridy += 1
     c.gridwidth = 3
     add(weightLayout(), c)
 
-    c.insets = new Insets(10, 5, 15, 5)
     c.gridy += 1
+    c.insets = new Insets(10, 5, 15, 5)
     add(stats, c)
 
     c.gridy += 1
     c.insets = new Insets(0, 5, 5, 5)
     c.weighty = 1.0
     c.fill = GridBagConstraints.BOTH
-    val sp = new JScrollPane(table)
-    sp.setBorder(BorderFactory.createEmptyBorder)
-    add(sp, c)
+    add({
+      val sp = new JScrollPane(table)
+      sp.setBorder(BorderFactory.createEmptyBorder)
+      sp
+    }, c)
   }
 
   private[this] def weightLayout(): JPanel = {
