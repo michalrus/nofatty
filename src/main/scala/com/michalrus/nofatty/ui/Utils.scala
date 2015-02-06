@@ -1,9 +1,9 @@
 package com.michalrus.nofatty.ui
 
-import java.awt.event.{ FocusEvent, FocusListener }
-import java.awt.{ Color, Component, KeyboardFocusManager }
+import java.awt.event.{FocusEvent, FocusListener}
+import java.awt.{Color, Component}
 import javax.swing._
-import javax.swing.event.{ DocumentEvent, DocumentListener }
+import javax.swing.event.{DocumentEvent, DocumentListener}
 import javax.swing.table.TableCellEditor
 import javax.swing.text.JTextComponent
 
@@ -37,24 +37,6 @@ trait StringVerifier { self: JTextComponent ⇒
     override def changedUpdate(e: DocumentEvent): Unit = color()
     override def removeUpdate(e: DocumentEvent): Unit = color()
   })
-}
-
-trait NormalTabAction { self: JComponent ⇒
-
-  {
-    val forward = new java.util.HashSet(
-      self.getFocusTraversalKeys(KeyboardFocusManager.FORWARD_TRAVERSAL_KEYS))
-
-    { val _ = forward.add(KeyStroke.getKeyStroke("TAB")) }
-    self.setFocusTraversalKeys(KeyboardFocusManager.FORWARD_TRAVERSAL_KEYS, forward)
-
-    val backward = new java.util.HashSet(
-      self.getFocusTraversalKeys(KeyboardFocusManager.BACKWARD_TRAVERSAL_KEYS))
-
-    { val _ = backward.add(KeyStroke.getKeyStroke("shift TAB")) }
-    self.setFocusTraversalKeys(KeyboardFocusManager.BACKWARD_TRAVERSAL_KEYS, backward)
-  }
-
 }
 
 final class VerifyingCellEditor(verify: String ⇒ Option[String]) extends AbstractCellEditor with TableCellEditor { self ⇒
