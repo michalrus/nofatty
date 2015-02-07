@@ -13,10 +13,11 @@ trait Autocompletion extends StringVerifier { self: JTextComponent ⇒
     if (completions contains input) Some(input) else None
 
   self.getDocument.addDocumentListener(new DocumentListener {
-    lazy val model = {
-      val m = new DefaultListModel[String]
-      completions foreach m.addElement
-      m
+    lazy val model = new AbstractListModel[String] {
+      // FIXME: so inefficient :3
+      val predicate: String ⇒ Boolean = _.toLowerCase contains self.getText.toLowerCase
+      override def getSize: Int = completions count predicate
+      override def getElementAt(index: Int): String = (completions filter predicate)(index)
     }
     lazy val list = {
       val l = new JList(model)
