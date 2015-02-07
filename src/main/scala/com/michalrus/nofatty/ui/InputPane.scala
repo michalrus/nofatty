@@ -89,7 +89,7 @@ class InputPane extends JPanel {
     add(weightLayout(), c)
 
     c.gridy += 1
-    add(new JTextField("Autocompletion test") with SelectAllOnFocus with Autocompletion {
+    add(new JTextField("granola") with SelectAllOnFocus with Autocompletion {
       override val completions = Vector("chocolate 55%", "granola", "apple", "canned pineapple", "egg yolk", "whole eggs", "pumpernickel", "olive oil", "uncooked pasta").sorted
     }, c)
 

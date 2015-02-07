@@ -2,6 +2,7 @@ package com.michalrus.nofatty.ui
 
 import java.awt.event._
 import java.awt.{ BorderLayout, Color, Dimension }
+import java.util.regex.Pattern
 import javax.swing._
 import javax.swing.event.{ DocumentEvent, DocumentListener }
 import javax.swing.text.JTextComponent
@@ -28,6 +29,11 @@ trait Autocompletion extends StringVerifier { self: JTextComponent ⇒
       l.addMouseListener(new MouseAdapter {
         override def mouseClicked(e: MouseEvent): Unit = if (e.getClickCount > 1) acceptSelection()
       })
+      l.setCellRenderer(new DefaultListCellRendererModifier({ obj ⇒
+        val s = s"(?i)${Pattern.quote(self.getText)}".r.replaceAllIn(s"$obj", mtch ⇒ s"\u0000${mtch.group(0)}\u0001")
+        val e = s.replace("<", "&lt;").replace(">", "&gt;").replace("\u0000", "<font color=purple><b>").replace("\u0001", "</b></font>")
+        s"<html>$e</html>"
+      }))
       l
     }
     lazy val popup = {
