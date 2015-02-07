@@ -1,6 +1,6 @@
 package com.michalrus.nofatty.ui
 
-import java.awt.{ BorderLayout, Color, Dimension }
+import java.awt.{ BorderLayout, Dimension }
 import javax.swing._
 
 object Ui {
