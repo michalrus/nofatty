@@ -79,14 +79,14 @@ trait Autocompletion extends StringVerifier { self: JTextComponent ⇒
     })
 
     def autocomplete(): Unit = {
-      val lpane = self.getRootPane.getLayeredPane
-
-      val p1 = lpane.getLocationOnScreen
-      val p2 = self.getLocationOnScreen
-      lpane.add(popup, JLayeredPane.POPUP_LAYER, 0)
-      popup.setLocation(p2.x - p1.x + 0, p2.y - p1.y + self.getHeight)
-      list.clearSelection()
-      popup.setVisible(true)
+      Option(self.getRootPane) map (_.getLayeredPane) foreach { lpane ⇒
+        val p1 = lpane.getLocationOnScreen
+        val p2 = self.getLocationOnScreen
+        lpane.add(popup, JLayeredPane.POPUP_LAYER, 0)
+        popup.setLocation(p2.x - p1.x + 0, p2.y - p1.y + self.getHeight)
+        list.clearSelection()
+        popup.setVisible(true)
+      }
     }
 
     override def insertUpdate(e: DocumentEvent): Unit = autocomplete()

@@ -39,10 +39,10 @@ trait StringVerifier { self: JTextComponent ⇒
   })
 }
 
-final class VerifyingCellEditor(verify: String ⇒ Option[String]) extends AbstractCellEditor with TableCellEditor { self ⇒
-  private[this] val tf = new JTextField with SelectAllOnFocus with StringVerifier {
-    override def verify(input: String): Option[String] = self.verify(input)
-  }
+sealed abstract class WeirdTextFieldCellEditor extends AbstractCellEditor with TableCellEditor { self ⇒
+  def textFieldFactory: JTextField with StringVerifier
+
+  private[this] val tf = textFieldFactory
 
   tf.setBorder(BorderFactory.createEmptyBorder)
 
@@ -59,4 +59,16 @@ final class VerifyingCellEditor(verify: String ⇒ Option[String]) extends Abstr
       true
     }
     else false
+}
+
+final class VerifyingCellEditor(verify: String ⇒ Option[String]) extends WeirdTextFieldCellEditor { self ⇒
+  override def textFieldFactory = new JTextField with SelectAllOnFocus with StringVerifier {
+    override def verify(input: String): Option[String] = self.verify(input)
+  }
+}
+
+final class AutocompletionCellEditor(completions: ⇒ Vector[String]) extends WeirdTextFieldCellEditor { self ⇒
+  override def textFieldFactory = new JTextField with SelectAllOnFocus with Autocompletion {
+    override def completions: Vector[String] = self.completions
+  }
 }

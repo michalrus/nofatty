@@ -38,7 +38,7 @@ class InputPane extends JPanel {
     t.setRowHeight(30)
 
     val colTime = t.getColumnModel.getColumn(0)
-    //val colProduct = t.getColumnModel.getColumn(1)
+    val colProduct = t.getColumnModel.getColumn(1)
     val colGrams = t.getColumnModel.getColumn(2)
 
     colTime.setMaxWidth(50)
@@ -52,6 +52,8 @@ class InputPane extends JPanel {
         case _ ⇒ None
       }
     ))
+
+    colProduct.setCellEditor(new AutocompletionCellEditor(Vector("chocolate 55%", "granola", "apple", "canned pineapple", "egg yolk", "whole eggs", "pumpernickel", "olive oil", "uncooked pasta").sorted))
 
     colGrams.setCellEditor(new VerifyingCellEditor(input ⇒
       Try(input.trim.replace(',', '.').toDouble).toOption filterNot (_ < 0.0) map (v ⇒ f"$v%.1f")
@@ -87,11 +89,6 @@ class InputPane extends JPanel {
 
     c.gridy += 1
     add(weightLayout(), c)
-
-    c.gridy += 1
-    add(new JTextField("granola") with SelectAllOnFocus with Autocompletion {
-      override val completions = Vector("chocolate 55%", "granola", "apple", "canned pineapple", "egg yolk", "whole eggs", "pumpernickel", "olive oil", "uncooked pasta").sorted
-    }, c)
 
     c.gridy += 1
     c.insets = new Insets(10, 5, 15, 5)
