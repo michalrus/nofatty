@@ -6,6 +6,7 @@ object D {
   val JFreeChart = "org.jfree" % "jfreechart" % V.JFreeChart
   val JodaTime = "joda-time" % "joda-time" % V.JodaTime
   val JodaConvert = "org.joda" % "joda-convert" % V.JodaConvert
+  val Parboiled = "org.parboiled" %% "parboiled-scala" % V.Parboiled
 }
 
 object R {

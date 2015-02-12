@@ -7,7 +7,8 @@ lazy val root = (
       D.ScalaTest % "test",
       D.ScalaCheck % "test",
       D.JFreeChart,
-      D.JodaTime, D.JodaConvert
+      D.JodaTime, D.JodaConvert,
+      D.Parboiled
     )
   )
 )

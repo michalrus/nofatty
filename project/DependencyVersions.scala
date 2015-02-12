@@ -4,4 +4,5 @@ object V {
   val JFreeChart = "1.0.19"
   val JodaTime = "2.7"
   val JodaConvert = "1.7"
+  val Parboiled = "1.1.7"
 }
