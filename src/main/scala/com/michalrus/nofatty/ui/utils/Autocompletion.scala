@@ -1,4 +1,4 @@
-package com.michalrus.nofatty.ui
+package com.michalrus.nofatty.ui.utils
 
 import java.awt.event._
 import java.awt.{ BorderLayout, Color, Dimension }
@@ -6,6 +6,8 @@ import java.util.regex.Pattern
 import javax.swing._
 import javax.swing.event.{ DocumentEvent, DocumentListener }
 import javax.swing.text.JTextComponent
+
+import com.michalrus.nofatty.ui.DefaultListCellRendererModifier
 
 trait Autocompletion extends StringVerifier { self: JTextComponent ⇒
   def completions: Vector[String]

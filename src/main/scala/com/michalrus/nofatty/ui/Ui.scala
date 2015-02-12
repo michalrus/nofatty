@@ -2,6 +2,7 @@ package com.michalrus.nofatty.ui
 
 import java.awt.{ BorderLayout, Dimension }
 import javax.swing._
+import com.michalrus.nofatty.ui.utils._
 
 object Ui {
 

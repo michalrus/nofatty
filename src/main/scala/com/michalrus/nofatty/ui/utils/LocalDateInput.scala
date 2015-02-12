@@ -1,6 +1,6 @@
-package com.michalrus.nofatty.ui
+package com.michalrus.nofatty.ui.utils
 
-import java.awt.event.{ KeyEvent, KeyListener, ActionEvent, ActionListener }
+import java.awt.event.{ ActionEvent, ActionListener, KeyEvent, KeyListener }
 import java.awt.{ Dimension, GridBagConstraints, GridBagLayout }
 import java.util.concurrent.atomic.AtomicReference
 import javax.swing.{ JButton, JPanel, JTextField }

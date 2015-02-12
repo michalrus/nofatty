@@ -4,6 +4,7 @@ import java.awt._
 import javax.swing._
 import javax.swing.table.DefaultTableCellRenderer
 
+import com.michalrus.nofatty.ui.utils._
 import org.joda.time.LocalDate
 
 import scala.util.Try

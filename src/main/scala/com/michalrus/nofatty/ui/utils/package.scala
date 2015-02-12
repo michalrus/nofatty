@@ -1,8 +1,8 @@
-package com.michalrus.nofatty
+package com.michalrus.nofatty.ui
 
 import javax.swing.SwingUtilities
 
-package object ui {
+package object utils {
 
   def edt(f: ⇒ Unit): Unit = {
     SwingUtilities.invokeLater(new Runnable {
