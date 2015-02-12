@@ -9,11 +9,15 @@ import javax.swing.text.JTextComponent
 
 import com.michalrus.nofatty.ui.DefaultListCellRendererModifier
 
-trait Autocompletion extends StringVerifier { self: JTextComponent ⇒
+trait Autocompletion extends TextFieldUsableAsCellEditor { self: JTextComponent ⇒
   def completions: Vector[String]
 
-  final override def verify(input: String): Option[String] =
-    if (completions contains input) Some(input) else None
+  final override def correctedInput: Option[String] = if (completions contains self.getText) Some(self.getText) else None
+  final override def reset(value: String) = self.setText(value)
+
+  self.setInputVerifier(new InputVerifier {
+    override def verify(input: JComponent): Boolean = completions contains self.getText
+  })
 
   self.getDocument.addDocumentListener(new DocumentListener {
     lazy val model = new AbstractListModel[String] {
@@ -80,7 +84,10 @@ trait Autocompletion extends StringVerifier { self: JTextComponent ⇒
       override def keyReleased(e: KeyEvent): Unit = ()
     })
 
+    private[this] lazy val normalBackground = self.getBackground
     def autocomplete(): Unit = {
+      self.setBackground(if (completions contains self.getText) normalBackground else Color.PINK)
+
       Option(self.getRootPane) map (_.getLayeredPane) foreach { lpane ⇒
         val p1 = lpane.getLocationOnScreen
         val p2 = self.getLocationOnScreen
@@ -94,5 +101,10 @@ trait Autocompletion extends StringVerifier { self: JTextComponent ⇒
     override def insertUpdate(e: DocumentEvent): Unit = autocomplete()
     override def changedUpdate(e: DocumentEvent): Unit = autocomplete()
     override def removeUpdate(e: DocumentEvent): Unit = autocomplete()
+  })
+
+  self.addFocusListener(new FocusListener {
+    override def focusGained(e: FocusEvent): Unit = self.selectAll()
+    override def focusLost(e: FocusEvent): Unit = self.select(0, 0)
   })
 }

@@ -3,7 +3,7 @@ package com.michalrus.nofatty.ui.utils
 import java.awt.event.{ ActionEvent, ActionListener, KeyEvent, KeyListener }
 import java.awt.{ Dimension, GridBagConstraints, GridBagLayout }
 import java.util.concurrent.atomic.AtomicReference
-import javax.swing.{ JButton, JPanel, JTextField }
+import javax.swing.{ JButton, JPanel }
 
 import org.joda.time.LocalDate
 import org.joda.time.format.DateTimeFormat
@@ -15,20 +15,20 @@ class LocalDateInput(initialDate: LocalDate, onChange: LocalDate ⇒ Unit) exten
   private[this] val formatter = DateTimeFormat.forPattern("MMMM d, Y")
   private[this] val prev = new JButton("«")
   private[this] val next = new JButton("»")
-  private[this] val text = new JTextField with SelectAllOnFocus with StringVerifier {
-    override def verify(input: String): Option[String] = {
-      val r = Try(formatter.parseLocalDate(input)).toOption filter (d ⇒ d.getYear >= 1000 && d.getYear < 9999)
-      r foreach { date ⇒
-        if (currentDate.get != date) {
-          edt { onChange(date) }
-          currentDate.set(date)
-        }
-      }
-      r map formatter.print
-    }
-  }
 
   private[this] val currentDate = new AtomicReference[LocalDate](initialDate)
+
+  private[this] val text = new VerifyingTextField(formatter.print(initialDate), { input ⇒
+    val r = Try(formatter.parseLocalDate(input)).toOption filter (d ⇒ d.getYear >= 1000 && d.getYear < 9999)
+    r foreach { date ⇒
+      if (currentDate.get != date) {
+        edt { onChange(date) }
+        currentDate.set(date)
+      }
+    }
+    r map formatter.print
+  }, rememberOriginalInput = false, selectAllOnFocus = true)
+
   def date: LocalDate = currentDate.get
   def setDate(d: LocalDate): Unit = {
     text.setText(formatter.print(d))
@@ -71,7 +71,6 @@ class LocalDateInput(initialDate: LocalDate, onChange: LocalDate ⇒ Unit) exten
   setLayout(new GridBagLayout)
   prev.setPreferredSize(new Dimension(25, 0))
   next.setPreferredSize(new Dimension(25, 0))
-  text.setText(formatter.print(initialDate))
 
   val c = new GridBagConstraints
   c.fill = GridBagConstraints.BOTH

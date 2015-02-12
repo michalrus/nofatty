@@ -16,7 +16,7 @@ class InputPane extends JPanel {
   val date = new LocalDateInput(LocalDate.now, _ ⇒ ())
   val stats = new StatsPane
 
-  val weight = new CalculatorTextfield("4.5")
+  val weight = CalculatorTextfield("4.5")
 
   val table: JTable = {
     val cols: Array[AnyRef] = Array("Time", "Product", "Grams")

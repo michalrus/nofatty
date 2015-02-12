@@ -5,95 +5,72 @@ import java.awt.event.{ FocusEvent, FocusListener }
 import java.util.concurrent.atomic.{ AtomicBoolean, AtomicReference }
 import javax.swing._
 import javax.swing.event.{ DocumentEvent, DocumentListener }
-import javax.swing.text.JTextComponent
 
 import com.michalrus.nofatty.Calculator
 
-trait SelectAllOnFocus { self: JTextComponent ⇒
-  addFocusListener(new FocusListener {
-    override def focusGained(e: FocusEvent): Unit = self.select(0, getText.length)
-    override def focusLost(e: FocusEvent): Unit = self.select(0, 0)
-  })
-}
+final class VerifyingTextField(initial: String,
+                               correct: String ⇒ Option[String],
+                               rememberOriginalInput: Boolean,
+                               selectAllOnFocus: Boolean) extends JTextField with TextFieldUsableAsCellEditor { self ⇒
+  private[this] val _originalInput = new AtomicReference[String]
+  private[this] val _correctedInput = new AtomicReference[Option[String]]
+  private[this] val isBeingEditedByUser = new AtomicBoolean
 
-trait StringVerifier { self: JTextComponent ⇒
-  def verify(input: String): Option[String]
-  private[this] val normalBackground = self.getBackground
-  self.setInputVerifier(new InputVerifier {
-    override def verify(input: JComponent): Boolean = {
-      self.verify(self.getText) match {
-        case Some(v) ⇒
-          self.setText(v)
-          self.setBackground(normalBackground)
-          true
-        case None ⇒
-          self.setBackground(Color.PINK)
-          false
-      }
-    }
-  })
-  self.getDocument.addDocumentListener(new DocumentListener {
-    def color(): Unit =
-      self.setBackground(if (self.verify(self.getText).isDefined) normalBackground else Color.PINK)
-    override def insertUpdate(e: DocumentEvent): Unit = color()
-    override def changedUpdate(e: DocumentEvent): Unit = color()
-    override def removeUpdate(e: DocumentEvent): Unit = color()
-  })
-}
+  def originalInput: String = _originalInput.get
+  override def correctedInput: Option[String] = _correctedInput.get
+  override def reset(value: String): Unit = {
+    _originalInput.set(value)
+    _correctedInput.set(correct(value))
+    isBeingEditedByUser.set(false)
+    self.setText(correctedInput getOrElse "")
+  }
 
-final class CalculatorTextfield(initial: String) extends JTextField { self ⇒
-  def userInput: String = _userInput.get
-  def calcValue: String = _calcValue.get
-
-  private[this] val _userInput = new AtomicReference(initial)
-  private[this] val _calcValue = new AtomicReference(Calculator(initial).fold(_ ⇒ "", v ⇒ f"$v%.1f"))
-
-  def verify(input: String): Option[String] =
-    Calculator(input) match {
-      case Right(v) ⇒
-        val fmt = f"$v%.1f"
-        if (isBeingEditedByUser.get) {
-          _userInput.set(input)
-          _calcValue.set(fmt)
-        }
-        Some(fmt)
-      case _ ⇒ None
-    }
+  reset(initial)
 
   private[this] val normalBackground = self.getBackground
+
   self.setInputVerifier(new InputVerifier {
-    override def verify(input: JComponent): Boolean = {
-      self.verify(self.getText) match {
-        case Some(v) ⇒
-          self.setBackground(normalBackground)
-          true
-        case None ⇒
-          self.setBackground(Color.PINK)
-          false
-      }
-    }
+    override def verify(input: JComponent): Boolean = correctedInput.isDefined
   })
 
-  private[this] val isBeingEditedByUser = new AtomicBoolean(false)
-
   self.getDocument.addDocumentListener(new DocumentListener {
-    def color(): Unit =
-      self.setBackground(if (self.verify(self.getText).isDefined) normalBackground else Color.PINK)
-    override def insertUpdate(e: DocumentEvent): Unit = color()
-    override def changedUpdate(e: DocumentEvent): Unit = color()
-    override def removeUpdate(e: DocumentEvent): Unit = color()
+    def check(): Unit = {
+      val input = self.getText
+      correct(input) match {
+        case Some(v) ⇒
+          _correctedInput.set(Some(v))
+          if (isBeingEditedByUser.get) _originalInput.set(if (rememberOriginalInput) input else v)
+          self.setBackground(normalBackground)
+        case None ⇒
+          _correctedInput.set(None)
+          self.setBackground(Color.PINK)
+      }
+    }
+    override def insertUpdate(e: DocumentEvent): Unit = check()
+    override def changedUpdate(e: DocumentEvent): Unit = check()
+    override def removeUpdate(e: DocumentEvent): Unit = check()
   })
 
   self.addFocusListener(new FocusListener {
     override def focusGained(e: FocusEvent): Unit = {
-      self.setText(userInput)
+      self.setText(originalInput)
       isBeingEditedByUser.set(true)
-      //      self.selectAll()
+      if (selectAllOnFocus) self.selectAll()
     }
     override def focusLost(e: FocusEvent): Unit = {
       isBeingEditedByUser.set(false)
-      self.setText(calcValue)
-      //      self.select(0, 0)
+      self.setText(correctedInput getOrElse "")
+      self.select(0, 0)
     }
   })
+}
+
+object CalculatorTextfield {
+  def apply(initial: String): VerifyingTextField = new VerifyingTextField(initial, { input ⇒
+    Calculator(input) match {
+      case Right(v) ⇒
+        Some(f"$v%.1f")
+      case _ ⇒ None
+    }
+  }, rememberOriginalInput = true, selectAllOnFocus = true)
 }
