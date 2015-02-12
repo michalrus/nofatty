@@ -35,9 +35,9 @@ object Calculator extends Parser {
   def Factor = rule { Number | Parens }
   def Parens = rule { "(" ~ WhiteSpace ~ Expression ~ ")" ~ WhiteSpace }
 
-  def Number = rule { group(optional("-" | "+") ~ UnsignedNumber) ~> (_.toDouble) ~ WhiteSpace }
+  def Number = rule { group(optional("-" | "+") ~ UnsignedNumber) ~> (_.replace(',', '.').toDouble) ~ WhiteSpace }
   def UnsignedNumber = rule { Frac | (oneOrMore(Digit) ~ optional(Frac)) }
-  def Frac = rule { "." ~ oneOrMore(Digit) }
+  def Frac = rule { anyOf(".,") ~ oneOrMore(Digit) }
   def Digit = rule { "0" - "9" }
 
   def WhiteSpace = rule { zeroOrMore((" " | "\t" | "\r" | "\n" | "\f" | "\b") label "WhiteSpace") }

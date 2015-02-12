@@ -44,7 +44,7 @@ class InputPane extends JPanel {
     colTime.setMaxWidth(50)
     colGrams.setMaxWidth(60)
 
-    val TimeRegex = """^(\d\d?):(\d\d)$""".r
+    val TimeRegex = """^(\d\d?):?(\d\d)$""".r
 
     colTime.setCellEditor(new VerifyingCellEditor(input ⇒
       TimeRegex.findFirstMatchIn(input) flatMap (m ⇒ Try((m.group(1).toInt, m.group(2).toInt)).toOption) flatMap {
