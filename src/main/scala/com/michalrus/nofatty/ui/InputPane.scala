@@ -23,13 +23,15 @@ class InputPane extends JPanel {
     val data: Array[Array[AnyRef]] = Array(
       Array("13:15", "granola", "25.0"),
       Array("15:00", "apple", "301.0"),
-      Array("18:20", "chocolate 55%", "36.0")
+      Array("18:20", "chocolate 55%", "36.0"),
+      Array("", "", "")
     )
 
     val t = new JTable(data, cols)
     t.setShowGrid(false)
     t.setRowSelectionAllowed(false)
     t.setColumnSelectionAllowed(false)
+    t.setCellSelectionEnabled(true)
     t.getTableHeader.setReorderingAllowed(false)
     t.getTableHeader.setResizingAllowed(false)
     t.setRowHeight(30)
