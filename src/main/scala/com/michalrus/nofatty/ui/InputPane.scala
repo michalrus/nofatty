@@ -16,11 +16,7 @@ class InputPane extends JPanel {
   val date = new LocalDateInput(LocalDate.now, _ ⇒ ())
   val stats = new StatsPane
 
-  val weight = new JTextField with SelectAllOnFocus with StringVerifier {
-    override def verify(input: String): Option[String] =
-      if (input.trim.isEmpty) Some("")
-      else Try(input.trim.replace(',', '.').toDouble).toOption filterNot (_ < 0.0) map (v ⇒ f"$v%.1f")
-  }
+  val weight = new CalculatorTextfield("4.5")
 
   val table: JTable = {
     val cols: Array[AnyRef] = Array("Time", "Product", "Grams")
