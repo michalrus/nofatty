@@ -2,7 +2,9 @@ package com.michalrus.nofatty.ui.utils
 
 import java.awt.Component
 import javax.swing.{ JTable, BorderFactory, JTextField, AbstractCellEditor }
-import javax.swing.table.TableCellEditor
+import javax.swing.table.{ DefaultTableCellRenderer, TableCellEditor }
+
+import com.michalrus.nofatty.Calculator
 
 trait TextFieldUsableAsCellEditor {
   def correctedInput: Option[String]
@@ -39,4 +41,20 @@ final class AutocompletionCellEditor(completions: ⇒ Vector[String]) extends We
   override def textFieldFactory = new JTextField with Autocompletion {
     override def completions: Vector[String] = self.completions
   }
+}
+
+final class CalculatorCellEditor extends WeirdTextFieldCellEditor { self ⇒
+  override def textFieldFactory = new VerifyingTextField("", { input ⇒
+    Calculator(input) match {
+      case Right(_) ⇒ Some(input)
+      case _        ⇒ None
+    }
+  }, false, true)
+}
+
+final class CalculatorCellRenderer extends DefaultTableCellRenderer {
+  override def setValue(value: AnyRef): Unit = super.setValue(Calculator(value.toString) match {
+    case Right(v) ⇒ f"$v%.1f"
+    case _        ⇒ ""
+  })
 }

@@ -2,7 +2,6 @@ package com.michalrus.nofatty.ui
 
 import java.awt._
 import javax.swing._
-import javax.swing.table.DefaultTableCellRenderer
 
 import com.michalrus.nofatty.ui.utils._
 import org.joda.time.LocalDate
@@ -52,11 +51,9 @@ class InputPane extends JPanel {
 
     colProduct.setCellEditor(new AutocompletionCellEditor(Vector("chocolate 55%", "granola", "apple", "canned pineapple", "egg yolk", "whole eggs", "pumpernickel", "olive oil", "uncooked pasta").sorted))
 
-    colGrams.setCellEditor(new VerifyingCellEditor(input ⇒
-      Try(input.trim.replace(',', '.').toDouble).toOption filterNot (_ < 0.0) map (v ⇒ f"$v%.1f")
-    ))
+    colGrams.setCellEditor(new CalculatorCellEditor)
     colGrams.setCellRenderer({
-      val r = new DefaultTableCellRenderer
+      val r = new CalculatorCellRenderer
       r.setHorizontalAlignment(SwingConstants.RIGHT)
       r
     })
