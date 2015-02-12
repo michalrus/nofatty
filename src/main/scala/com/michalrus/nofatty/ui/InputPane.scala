@@ -1,6 +1,7 @@
 package com.michalrus.nofatty.ui
 
 import java.awt._
+import java.awt.event.KeyEvent
 import javax.swing._
 
 import com.michalrus.nofatty.ui.utils._
@@ -25,13 +26,16 @@ class InputPane extends JPanel {
       Array("18:20", "chocolate 55%", "36.0")
     )
 
-    val t = new JTable(data, cols) //with NormalTabAction
+    val t = new JTable(data, cols)
     t.setShowGrid(false)
     t.setRowSelectionAllowed(false)
     t.setColumnSelectionAllowed(false)
     t.getTableHeader.setReorderingAllowed(false)
     t.getTableHeader.setResizingAllowed(false)
     t.setRowHeight(30)
+
+    val _ = t.getInputMap(JComponent.WHEN_ANCESTOR_OF_FOCUSED_COMPONENT).
+      put(KeyStroke.getKeyStroke(KeyEvent.VK_ENTER, 0), "selectNextColumnCell")
 
     val colTime = t.getColumnModel.getColumn(0)
     val colProduct = t.getColumnModel.getColumn(1)
