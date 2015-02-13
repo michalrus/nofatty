@@ -86,7 +86,8 @@ trait Autocompletion extends TextFieldUsableAsCellEditor { self: JTextComponent 
 
     private[this] lazy val normalBackground = self.getBackground
     def autocomplete(): Unit = {
-      self.setBackground(if (completions contains self.getText) normalBackground else Color.PINK)
+      val nb = normalBackground // force eval; needed if invalid initially
+      self.setBackground(if (completions contains self.getText) nb else Color.PINK)
 
       Option(self.getRootPane) map (_.getLayeredPane) foreach { lpane ⇒
         val p1 = lpane.getLocationOnScreen

@@ -28,6 +28,8 @@ object Products {
     }
   })
 
-  def all = memo.get
+  def names: Map[String, UUID] = memo.get map { case (u, p) ⇒ (p.name, u) }
+
+  def find(uuid: UUID): Option[Product] = memo.get.get(uuid)
 
 }

@@ -4,6 +4,7 @@ import java.awt._
 import java.awt.event.KeyEvent
 import javax.swing._
 
+import com.michalrus.nofatty.data.Products
 import com.michalrus.nofatty.ui.utils._
 import org.joda.time.LocalDate
 
@@ -35,6 +36,7 @@ class InputPane extends JPanel {
     t.getTableHeader.setReorderingAllowed(false)
     t.getTableHeader.setResizingAllowed(false)
     t.setRowHeight(30)
+    t.putClientProperty("terminateEditOnFocusLost", true)
 
     val _ = t.getInputMap(JComponent.WHEN_ANCESTOR_OF_FOCUSED_COMPONENT).
       put(KeyStroke.getKeyStroke(KeyEvent.VK_ENTER, 0), "selectNextColumnCell")
@@ -55,7 +57,7 @@ class InputPane extends JPanel {
       }
     ))
 
-    colProduct.setCellEditor(new AutocompletionCellEditor(Vector("chocolate 55%", "granola", "apple", "canned pineapple", "egg yolk", "whole eggs", "pumpernickel", "olive oil", "uncooked pasta").sorted))
+    colProduct.setCellEditor(new AutocompletionCellEditor(Products.names.keySet.toVector.sorted))
 
     colGrams.setCellEditor(new CalculatorCellEditor)
     colGrams.setCellRenderer({
