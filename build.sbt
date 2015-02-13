@@ -8,7 +8,9 @@ lazy val root = (
       D.ScalaCheck % "test",
       D.JFreeChart,
       D.JodaTime, D.JodaConvert,
-      D.Parboiled
+      D.Parboiled,
+      D.SQLite,
+      D.Slick, D.Slf4j
     )
   )
 )

@@ -7,6 +7,9 @@ object D {
   val JodaTime = "joda-time" % "joda-time" % V.JodaTime
   val JodaConvert = "org.joda" % "joda-convert" % V.JodaConvert
   val Parboiled = "org.parboiled" %% "parboiled-scala" % V.Parboiled
+  val SQLite = "org.xerial" % "sqlite-jdbc" % V.SQLite
+  val Slick = "com.typesafe.slick" %% "slick" % V.Slick
+  val Slf4j = "org.slf4j" % "slf4j-nop" % V.Slf4j
 }
 
 object R {
