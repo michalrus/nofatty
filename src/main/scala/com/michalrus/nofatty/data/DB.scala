@@ -28,12 +28,9 @@ object DB {
       (basicProducts.ddl ++ ingredients.ddl ++ compoundProducts.ddl).create
     }
 
-  trait CustomTypes {
-    implicit val uuidColumnType = MappedColumnType.base[UUID, String](_.toString, UUID.fromString)
-    implicit val dateTimeColumnType = MappedColumnType.base[DateTime, Long](_.getMillis, new DateTime(_))
-  }
+  implicit lazy val dateTimeColumnType = MappedColumnType.base[DateTime, Long](_.getMillis, new DateTime(_))
 
-  final class BasicProducts(tag: Tag) extends Table[BasicProduct](tag, "basic_products") with CustomTypes {
+  final class BasicProducts(tag: Tag) extends Table[BasicProduct](tag, "basic_products") {
     def uuid = column[UUID]("uuid", O.PrimaryKey)
     def lastModified = column[DateTime]("lastModified")
     def name = column[String]("name")
@@ -45,7 +42,7 @@ object DB {
     override def * = (uuid, lastModified, name, kcal, protein, fat, carbohydrate, fiber) <> (BasicProduct.tupled, BasicProduct.unapply)
   }
 
-  final class Ingredients(tag: Tag) extends Table[(UUID, UUID, Double)](tag, "ingredients") with CustomTypes {
+  final class Ingredients(tag: Tag) extends Table[(UUID, UUID, Double)](tag, "ingredients") {
     def compoundProductID = column[UUID]("compound_product")
     def basicProductID = column[UUID]("basic_product")
     def grams = column[Double]("grams")
@@ -53,7 +50,7 @@ object DB {
     def pk = primaryKey("ingredients_pk", (compoundProductID, basicProductID))
   }
 
-  final class CompoundProducts(tag: Tag) extends Table[(UUID, DateTime, String, Double)](tag, "compound_products") with CustomTypes {
+  final class CompoundProducts(tag: Tag) extends Table[(UUID, DateTime, String, Double)](tag, "compound_products") {
     def uuid = column[UUID]("uuid", O.PrimaryKey)
     def lastModified = column[DateTime]("lastModified")
     def name = column[String]("name")
