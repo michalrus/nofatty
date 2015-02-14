@@ -1,6 +1,6 @@
 package com.michalrus.nofatty.ui
 
-import java.awt.{ Font, GridLayout }
+import java.awt.{ Font, Color, GridLayout }
 import javax.swing.{ JLabel, JPanel }
 
 import com.michalrus.nofatty.data.NutritionalValue
@@ -48,6 +48,7 @@ class StatsPane extends JPanel {
 
     def title(j: JLabel): JLabel = {
       j.setFont(new Font(j.getFont.getName, Font.ITALIC, j.getFont.getSize))
+      j.setForeground(new Color(0xCC, 0xCC, 0xCC))
       j
     }
 
