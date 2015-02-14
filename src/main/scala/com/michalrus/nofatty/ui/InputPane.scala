@@ -33,7 +33,7 @@ class InputPane extends JPanel {
   val date = new LocalDateInput(LocalDate.now, setDate)
   val stats = new StatsPane
 
-  val weight = CalculatorTextfield("4.5+1")
+  val weight = CalculatorTextfield("4.5+1", allowEmpty = true)
 
   lazy val model = new AbstractTableModel {
     override def getRowCount = 1 + (day.get map (_.eatenProducts.size) getOrElse 0)
