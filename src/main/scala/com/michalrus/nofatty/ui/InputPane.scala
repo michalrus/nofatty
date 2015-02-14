@@ -78,7 +78,9 @@ class InputPane extends JPanel {
     t.getTableHeader.setReorderingAllowed(false)
     t.getTableHeader.setResizingAllowed(false)
     t.setRowHeight(30)
+    t.setSurrendersFocusOnKeystroke(true)
     t.putClientProperty("terminateEditOnFocusLost", true)
+    t.putClientProperty("JTable.autoStartsEdit", false)
 
     val _ = t.getInputMap(JComponent.WHEN_ANCESTOR_OF_FOCUSED_COMPONENT).
       put(KeyStroke.getKeyStroke(KeyEvent.VK_ENTER, 0), "selectNextColumnCell")
