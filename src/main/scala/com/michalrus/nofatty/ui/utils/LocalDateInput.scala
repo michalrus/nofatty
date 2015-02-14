@@ -30,16 +30,18 @@ class LocalDateInput(initialDate: LocalDate, onChange: LocalDate ⇒ Unit) exten
   }, rememberOriginalInput = false, selectAllOnFocus = true)
 
   def date: LocalDate = currentDate.get
+
   def setDate(d: LocalDate): Unit = {
-    text.setText(formatter.print(d))
+    if (currentDate.get != d)
+      text.setText(formatter.print(d))
   }
   private[this] def plusOneDay(): Unit = {
-    setDate(currentDate.get.plusDays(1))
+    text.setText(formatter.print(currentDate.get.plusDays(1)))
     text.requestFocus()
     text.selectAll()
   }
   private[this] def minusOneDay(): Unit = {
-    setDate(currentDate.get.minusDays(1))
+    text.setText(formatter.print(currentDate.get.minusDays(1)))
     text.requestFocus()
     text.selectAll()
   }

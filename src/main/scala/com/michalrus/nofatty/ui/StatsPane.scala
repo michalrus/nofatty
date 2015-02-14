@@ -1,34 +1,36 @@
 package com.michalrus.nofatty.ui
 
-import java.awt.{ Color, Font, GridLayout }
+import java.awt.{ Font, GridLayout }
 import javax.swing.{ JLabel, JPanel }
+
+import com.michalrus.nofatty.data.NutritionalValue
 
 class StatsPane extends JPanel {
 
-  def setData(kcal: Double, protein: Double, fat: Double, carbohydrate: Double, fiber: Double): Unit = {
-    lKcal setText intFormatter.format(kcal)
-    lProtein setText f"$protein%.1f g"
-    lFat setText f"$fat%.1f g"
-    lCarbohydrate setText f"$carbohydrate%.1f g"
-    lFiber setText f"$fiber%.1f g"
+  def setData(n: NutritionalValue): Unit = {
+    lKcal setText intFormatter.format(n.kcal)
+    lProtein setText f"${n.protein}%.1f g"
+    lFat setText f"${n.fat}%.1f g"
+    lCarbohydrate setText f"${n.carbohydrate}%.1f g"
+    lFiber setText f"${n.fiber}%.1f g"
 
-    val mass = protein + fat + carbohydrate + fiber
+    val mass = n.protein + n.fat + n.carbohydrate + n.fiber
 
     if (mass != 0.0) {
-      pProtein setText f"${100.0 * protein / mass}%.1f%%"
-      pFat setText f"${100.0 * fat / mass}%.1f%%"
-      pCarbohydrate setText f"${100.0 * carbohydrate / mass}%.1f%%"
-      pFiber setText f"${100.0 * fiber / mass}%.1f%%"
+      pProtein setText f"${100.0 * n.protein / mass}%.1f%%"
+      pFat setText f"${100.0 * n.fat / mass}%.1f%%"
+      pCarbohydrate setText f"${100.0 * n.carbohydrate / mass}%.1f%%"
+      pFiber setText f"${100.0 * n.fiber / mass}%.1f%%"
     }
     else Set(pProtein, pFat, pCarbohydrate, pFiber) foreach (_ setText "")
 
-    val divisor = protein
+    val divisor = n.protein
 
     if (divisor != 0.0) {
-      rProtein setText f"${protein / divisor}%.2f"
-      rFat setText f"${fat / divisor}%.2f"
-      rCarbohydrate setText f"${carbohydrate / divisor}%.2f"
-      rFiber setText f"${fiber / divisor}%.2f"
+      rProtein setText f"${n.protein / divisor}%.2f"
+      rFat setText f"${n.fat / divisor}%.2f"
+      rCarbohydrate setText f"${n.carbohydrate / divisor}%.2f"
+      rFiber setText f"${n.fiber / divisor}%.2f"
     }
     else Set(rProtein, rFat, rCarbohydrate, rFiber) foreach (_ setText "")
   }
@@ -45,10 +47,7 @@ class StatsPane extends JPanel {
     setLayout(new GridLayout(4, 5))
 
     def title(j: JLabel): JLabel = {
-      //      j.setFont(new Font(j.getFont.getName, Font.BOLD, j.getFont.getSize))
       j.setFont(new Font(j.getFont.getName, Font.ITALIC, j.getFont.getSize))
-      //      j.setBackground(new Color(0xEE, 0xEE, 0xEE))
-      //      j.setOpaque(true)
       j
     }
 
@@ -57,7 +56,7 @@ class StatsPane extends JPanel {
     Vector(title(new JLabel("%M")), pProtein, pFat, pCarbohydrate, pFiber) foreach add
     Vector(title(new JLabel("÷M")), rProtein, rFat, rCarbohydrate, rFiber) foreach add
 
-    setData(0, 0, 0, 0, 0)
+    setData(NutritionalValue(0, 0, 0, 0, 0))
   }
 
 }

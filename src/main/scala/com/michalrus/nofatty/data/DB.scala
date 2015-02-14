@@ -44,7 +44,7 @@ object DB {
 
   import Types._
 
-  final class BasicProducts(tag: Tag) extends Table[BasicProduct](tag, "basic_products") {
+  final class BasicProducts(tag: Tag) extends Table[(UUID, DateTime, String, Double, Double, Double, Double, Double)](tag, "basic_products") {
     def uuid = column[UUID]("uuid", O.PrimaryKey)
     def lastModified = column[DateTime]("lastModified")
     def name = column[String]("name")
@@ -53,7 +53,7 @@ object DB {
     def fat = column[Double]("fat")
     def carbohydrate = column[Double]("carbohydrate")
     def fiber = column[Double]("fiber")
-    override def * = (uuid, lastModified, name, kcal, protein, fat, carbohydrate, fiber) <> (BasicProduct.tupled, BasicProduct.unapply)
+    override def * = (uuid, lastModified, name, kcal, protein, fat, carbohydrate, fiber)
   }
 
   final class Ingredients(tag: Tag) extends Table[(UUID, UUID, Double)](tag, "ingredients") {

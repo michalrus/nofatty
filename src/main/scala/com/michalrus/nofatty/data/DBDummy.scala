@@ -11,8 +11,8 @@ object DBDummy {
     @inline def d[F](b: ⇒ F): Unit = { val _ = b; () } // discard non-unit value
 
     val butterID, breadID, sandwichID = UUID.randomUUID
-    d { DB.basicProducts += BasicProduct(butterID, DateTime.now, "Cow butter", 748, 0, 83, 0, 0) }
-    d { DB.basicProducts += BasicProduct(breadID, DateTime.now, "White bread", 257, 8.5, 1.4, 54.3, 2.7) }
+    d { DB.basicProducts += ((butterID, DateTime.now, "Cow butter", 748, 0, 83, 0, 0)) }
+    d { DB.basicProducts += ((breadID, DateTime.now, "White bread", 257, 8.5, 1.4, 54.3, 2.7)) }
     d { DB.compoundProducts += ((sandwichID, DateTime.now, "Sandwich", 1.0)) }
     d { DB.ingredients += ((sandwichID, breadID, 25)) }
     d { DB.ingredients += ((sandwichID, butterID, 5)) }
