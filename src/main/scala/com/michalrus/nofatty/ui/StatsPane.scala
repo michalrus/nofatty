@@ -22,7 +22,7 @@ class StatsPane extends JPanel {
       pCarbohydrate setText f"${100.0 * n.carbohydrate / mass}%.1f%%"
       pFiber setText f"${100.0 * n.fiber / mass}%.1f%%"
     }
-    else Set(pProtein, pFat, pCarbohydrate, pFiber) foreach (_ setText "")
+    else Set(pProtein, pFat, pCarbohydrate, pFiber) foreach (_ setText "—")
 
     val divisor = n.protein
 
@@ -32,7 +32,7 @@ class StatsPane extends JPanel {
       rCarbohydrate setText f"${n.carbohydrate / divisor}%.2f"
       rFiber setText f"${n.fiber / divisor}%.2f"
     }
-    else Set(rProtein, rFat, rCarbohydrate, rFiber) foreach (_ setText "")
+    else Set(rProtein, rFat, rCarbohydrate, rFiber) foreach (_ setText "—")
   }
 
   private[this] val lKcal, lProtein, lFat, lCarbohydrate, lFiber = new JLabel

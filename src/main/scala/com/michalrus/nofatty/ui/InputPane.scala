@@ -4,6 +4,7 @@ import java.awt._
 import java.awt.event.KeyEvent
 import java.util.concurrent.atomic.AtomicReference
 import javax.swing._
+import javax.swing.event.{ ListSelectionEvent, ListSelectionListener }
 import javax.swing.table.AbstractTableModel
 
 import com.michalrus.nofatty.data._
@@ -31,6 +32,7 @@ class InputPane extends JPanel {
 
   val date = new LocalDateInput(LocalDate.now, onDateChanged)
   val stats = new StatsPane
+  val selectionStats = new StatsPane
 
   val weight = CalculatorTextfield("4.5+1", _ > 0.0, allowEmpty = true)
 
@@ -109,6 +111,14 @@ class InputPane extends JPanel {
       r
     })
 
+    t.getSelectionModel.addListSelectionListener(new ListSelectionListener {
+      override def valueChanged(e: ListSelectionEvent): Unit = {
+        val eps = day.get.toSeq flatMap (_.eatenProducts)
+        val selected = eps.zipWithIndex filter { case (_, i) ⇒ t.isRowSelected(i) } map { case (ep, _) ⇒ ep }
+        selectionStats.setData(sumEatenProducts(selected))
+      }
+    })
+
     t
   }
 
@@ -137,11 +147,9 @@ class InputPane extends JPanel {
     add(weightLayout(), c)
 
     c.gridy += 1
-    c.insets = new Insets(10, 5, 15, 5)
     add(stats, c)
 
     c.gridy += 1
-    c.insets = new Insets(0, 5, 5, 5)
     c.weighty = 1.0
     c.fill = GridBagConstraints.BOTH
     add({
@@ -149,6 +157,11 @@ class InputPane extends JPanel {
       sp.setBorder(BorderFactory.createEmptyBorder)
       sp
     }, c)
+
+    c.gridy += 1
+    c.weighty = 0.0
+    c.fill = GridBagConstraints.HORIZONTAL
+    add(selectionStats, c)
   }
 
   private[this] def weightLayout(): JPanel = {

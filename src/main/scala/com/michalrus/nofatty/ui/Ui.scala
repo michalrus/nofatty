@@ -13,7 +13,7 @@ object Ui {
       val f = new JFrame
       f.setTitle("nofatty")
       f.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE)
-      f.setSize(new Dimension(950, 700))
+      f.setSize(new Dimension(950, 750))
       f.setMinimumSize(f.getSize)
       f.setLayout(new BorderLayout)
       f.setLocationRelativeTo(Unsafe.NullComponent)
