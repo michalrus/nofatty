@@ -1,7 +1,7 @@
 package com.michalrus.nofatty.ui
 
 import java.awt._
-import java.awt.event.KeyEvent
+import java.awt.event.{ FocusEvent, FocusListener, KeyEvent }
 import java.util.concurrent.atomic.AtomicReference
 import javax.swing._
 import javax.swing.event.{ ListSelectionEvent, ListSelectionListener }
@@ -10,7 +10,7 @@ import javax.swing.table.AbstractTableModel
 import com.michalrus.nofatty.Calculator
 import com.michalrus.nofatty.data._
 import com.michalrus.nofatty.ui.utils._
-import org.joda.time.{ DateTime, LocalDate }
+import org.joda.time.{ DateTimeZone, DateTime, LocalDate }
 import org.joda.time.format.DateTimeFormat
 
 import scala.util.Try
@@ -35,7 +35,23 @@ class InputPane extends JPanel {
   val stats = new StatsPane
   val selectionStats = new StatsPane
 
-  val weight = CalculatorTextfield("4.5+1", _ > 0.0, allowEmpty = true)
+  val weight = CalculatorTextfield("", _ > 0.0, allowEmpty = true)
+
+  weight.addFocusListener(new FocusListener {
+    override def focusGained(e: FocusEvent): Unit = ()
+    override def focusLost(e: FocusEvent): Unit = {
+      lazy val correctedInput = weight.correctedInput filter (_.nonEmpty) map (_.toDouble)
+      day.get match {
+        case Some(d) if d.weightExpr != weight.originalInput ⇒
+          Days.commit(d.copy(lastModified = DateTime.now, weight = correctedInput, weightExpr = weight.originalInput))
+          onDateChanged(date.date)
+        case None if weight.originalInput.nonEmpty ⇒
+          Days.commit(Day(date.date, DateTime.now, DateTimeZone.getDefault, weight.originalInput, correctedInput, Seq.empty))
+          onDateChanged(date.date)
+        case _ ⇒
+      }
+    }
+  })
 
   lazy val model = new AbstractTableModel {
     override def getRowCount = 1 + (day.get map (_.eatenProducts.size) getOrElse 0)
