@@ -7,9 +7,10 @@ import javax.swing._
 import javax.swing.event.{ ListSelectionEvent, ListSelectionListener }
 import javax.swing.table.AbstractTableModel
 
+import com.michalrus.nofatty.Calculator
 import com.michalrus.nofatty.data._
 import com.michalrus.nofatty.ui.utils._
-import org.joda.time.LocalDate
+import org.joda.time.{ DateTime, LocalDate }
 import org.joda.time.format.DateTimeFormat
 
 import scala.util.Try
@@ -68,7 +69,20 @@ class InputPane extends JPanel {
     }
 
     override def setValueAt(aValue: AnyRef, rowIndex: Int, columnIndex: Int): Unit = {
-      // TODO
+      if (rowIndex == getRowCount - 1) {
+        // TODO: adding a new record
+      }
+      else day.get foreach { day ⇒
+        val oldEp = day.eatenProducts(rowIndex)
+        val newEp: EatenProduct = columnIndex match {
+          case 0 ⇒ oldEp.copy(time = formatter.parseLocalTime(aValue.toString))
+          case 1 ⇒ oldEp.copy(product = Products.names.getOrElse(aValue.toString, throw new Exception("shouldn’t ever be thrown, really")))
+          case _ ⇒ oldEp.copy(gramsExpr = aValue.toString, grams = Calculator(aValue.toString).right getOrElse 0.0)
+        }
+        val newEps = day.eatenProducts.updated(rowIndex, newEp)
+        Days.commit(day.copy(lastModified = DateTime.now, eatenProducts = newEps))
+        onDateChanged(day.date)
+      }
     }
   }
 

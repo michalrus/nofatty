@@ -5,11 +5,11 @@ import java.util.UUID
 import scala.slick.driver.SQLiteDriver.simple._
 import org.joda.time.{ LocalTime, DateTimeZone, LocalDate, DateTime }
 
+import DB.{ discard ⇒ d }
+
 object DBDummy {
 
   DB.db withSession { implicit session ⇒
-    @inline def d[F](b: ⇒ F): Unit = { val _ = b; () } // discard non-unit value
-
     val butterID, breadID, sandwichID = UUID.randomUUID
     d { DB.basicProducts += ((butterID, DateTime.now, "Cow butter", 748, 0, 83, 0, 0)) }
     d { DB.basicProducts += ((breadID, DateTime.now, "White bread", 257, 8.5, 1.4, 54.3, 2.7)) }

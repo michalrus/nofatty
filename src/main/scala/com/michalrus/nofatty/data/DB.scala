@@ -10,6 +10,9 @@ import scala.slick.lifted.Tag
 
 object DB {
 
+  /** Discards a non-unit value. */
+  @inline def discard[F](b: ⇒ F): Unit = { val _ = b; () }
+
   object Types {
     implicit lazy val dateTimeColumnType = MappedColumnType.base[DateTime, Long](_.getMillis, new DateTime(_))
     implicit lazy val dateTimeZoneColumnType = MappedColumnType.base[DateTimeZone, String](_.getID, DateTimeZone.forID)
@@ -29,7 +32,7 @@ object DB {
     s"$dir/data.db"
   }
 
-  def db = Database.forURL(s"jdbc:sqlite:$DBFile", driver = "org.sqlite.JDBC")
+  lazy val db = Database.forURL(s"jdbc:sqlite:$DBFile", driver = "org.sqlite.JDBC")
 
   val basicProducts = TableQuery[BasicProducts]
   val ingredients = TableQuery[Ingredients]
