@@ -86,13 +86,14 @@ object DB {
     override def * = (date, lastModified, zone, weightExpr, weight)
   }
 
-  final class EatenProducts(tag: Tag) extends Table[(LocalDate, LocalTime, UUID, String, Double)](tag, "eaten_product") {
+  final class EatenProducts(tag: Tag) extends Table[(LocalDate, LocalTime, UUID, String, Double)](tag, "eaten_products") {
     def date = column[LocalDate]("date")
     def time = column[LocalTime]("time")
     def productId = column[UUID]("product")
     def gramsExpr = column[String]("grams_expr")
     def grams = column[Double]("grams")
     override def * = (date, time, productId, gramsExpr, grams)
+    def dateTimeIdx = index("date_time_idx", (date, time))
   }
 
 }
