@@ -24,12 +24,14 @@ class InputPane extends JPanel {
 
   private[this] def onDateChanged(d: LocalDate): Unit = {
     day.set(Days find d)
+    newRecord.set(("", "", ""))
     model.fireTableDataChanged()
     stats.setData(sumEatenProducts(day.get.toSeq flatMap (_.eatenProducts)))
     weight.reset(day.get map (_.weightExpr) getOrElse "")
   }
 
   val day = new AtomicReference[Option[Day]](None)
+  val newRecord = new AtomicReference[(String, String, String)](("", "", ""))
 
   val date = new LocalDateInput(LocalDate.now, onDateChanged)
   val stats = new StatsPane
@@ -71,7 +73,12 @@ class InputPane extends JPanel {
     private[this] val formatter = DateTimeFormat.forPattern("HH:mm")
 
     override def getValueAt(rowIndex: Int, columnIndex: Int): String = {
-      if (rowIndex >= getRowCount - 1) ""
+      if (rowIndex >= getRowCount - 1)
+        columnIndex match {
+          case 0 ⇒ newRecord.get._1
+          case 1 ⇒ newRecord.get._2
+          case _ ⇒ newRecord.get._3
+        }
       else {
         val eatenProduct = day.get flatMap (_.eatenProducts lift rowIndex)
         val product = eatenProduct flatMap (Products find _.product)
@@ -86,7 +93,26 @@ class InputPane extends JPanel {
 
     override def setValueAt(aValue: AnyRef, rowIndex: Int, columnIndex: Int): Unit = {
       if (rowIndex == getRowCount - 1) {
-        // TODO: adding a new record
+        val oldNewRecord = newRecord.get
+        val newNewRecord: (String, String, String) = (
+          if (columnIndex == 0) aValue.toString else oldNewRecord._1,
+          if (columnIndex == 1) aValue.toString else oldNewRecord._2,
+          if (columnIndex == 2) aValue.toString else oldNewRecord._3
+        )
+        newRecord.set(newNewRecord)
+        if (newNewRecord._1.nonEmpty && newNewRecord._2.nonEmpty && newNewRecord._3.nonEmpty) {
+          val ep = EatenProduct(
+            formatter.parseLocalTime(newNewRecord._1),
+            Products.names.getOrElse(newNewRecord._2, throw new Exception("shouldn’t ever be thrown, really")),
+            newNewRecord._3,
+            Calculator(newNewRecord._3).right getOrElse 0.0
+          )
+          day.get match {
+            case Some(d) ⇒ Days.commit(d.copy(lastModified = DateTime.now, eatenProducts = d.eatenProducts :+ ep))
+            case None    ⇒ Days.commit(Day(date.date, DateTime.now, DateTimeZone.getDefault, "", None, Seq(ep)))
+          }
+          onDateChanged(date.date)
+        }
       }
       else day.get foreach { day ⇒
         val oldEp = day.eatenProducts(rowIndex)
