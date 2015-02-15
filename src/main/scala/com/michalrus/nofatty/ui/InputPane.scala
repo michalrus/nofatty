@@ -130,11 +130,9 @@ class InputPane extends JPanel {
 
   val table: JTable = {
     val t = new JTable(model)
-    t.setShowGrid(false)
     t.setCellSelectionEnabled(true)
     t.getTableHeader.setReorderingAllowed(false)
     t.getTableHeader.setResizingAllowed(false)
-    t.setRowHeight(30)
     t.setSurrendersFocusOnKeystroke(true)
     t.putClientProperty("terminateEditOnFocusLost", true)
     t.putClientProperty("JTable.autoStartsEdit", false)
@@ -145,9 +143,6 @@ class InputPane extends JPanel {
     val colTime = t.getColumnModel.getColumn(0)
     val colProduct = t.getColumnModel.getColumn(1)
     val colGrams = t.getColumnModel.getColumn(2)
-
-    colTime.setMaxWidth(50)
-    colGrams.setMaxWidth(60)
 
     val TimeRegex = """^(\d\d?):?(\d\d)$""".r
 
@@ -178,16 +173,19 @@ class InputPane extends JPanel {
     t
   }
 
-  setOpaque(false)
   layout()
-
-  edt { weight.requestFocus() }
-
   onDateChanged(date.date)
+  edt { weight.requestFocus() }
 
   private[this] def layout(): Unit = {
     table.setFillsViewportHeight(true)
+    table.setShowGrid(false)
+    table.setRowHeight(30)
 
+    table.getColumnModel.getColumn(0).setMaxWidth(50)
+    table.getColumnModel.getColumn(2).setMaxWidth(60)
+
+    setOpaque(false)
     setLayout(new GridBagLayout)
 
     val c = new GridBagConstraints
@@ -200,7 +198,16 @@ class InputPane extends JPanel {
     add(date, c)
 
     c.gridy += 1
-    add(weightLayout(), c)
+    add({
+      val pane = new JPanel
+      pane.setOpaque(false)
+      pane.setLayout(new GridLayout(1, 2))
+
+      { val _ = pane.add(new JLabel("Weight [kg]:")) }
+      { val _ = pane.add(weight) }
+
+      pane
+    }, c)
 
     c.gridy += 1
     add(stats, c)
@@ -208,27 +215,12 @@ class InputPane extends JPanel {
     c.gridy += 1
     c.weighty = 1.0
     c.fill = GridBagConstraints.BOTH
-    add({
-      val sp = new JScrollPane(table)
-      sp.setBorder(BorderFactory.createEmptyBorder)
-      sp
-    }, c)
+    add(new JScrollPane(table), c)
 
     c.gridy += 1
     c.weighty = 0.0
     c.fill = GridBagConstraints.HORIZONTAL
     add(selectionStats, c)
-  }
-
-  private[this] def weightLayout(): JPanel = {
-    val pane = new JPanel
-    pane.setOpaque(false)
-    pane.setLayout(new GridLayout(1, 2))
-
-    { val _ = pane.add(new JLabel("Weight [kg]:")) }
-    { val _ = pane.add(weight) }
-
-    pane
   }
 
 }
