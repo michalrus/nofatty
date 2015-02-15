@@ -33,7 +33,7 @@ class InputPane extends JPanel {
   val date = new LocalDateInput(LocalDate.now, setDate)
   val stats = new StatsPane
 
-  val weight = CalculatorTextfield("4.5+1", allowEmpty = true)
+  val weight = CalculatorTextfield("4.5+1", _ > 0.0, allowEmpty = true)
 
   lazy val model = new AbstractTableModel {
     override def getRowCount = 1 + (day.get map (_.eatenProducts.size) getOrElse 0)
@@ -103,7 +103,7 @@ class InputPane extends JPanel {
 
     colProduct.setCellEditor(new AutocompletionCellEditor(Products.names.keySet.toVector.sorted))
 
-    colGrams.setCellEditor(new CalculatorCellEditor)
+    colGrams.setCellEditor(new CalculatorCellEditor(_ > 0.0))
     colGrams.setCellRenderer({
       val r = new CalculatorCellRenderer
       r.setHorizontalAlignment(SwingConstants.RIGHT)

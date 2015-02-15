@@ -66,10 +66,10 @@ final class VerifyingTextField(initial: String,
 }
 
 object CalculatorTextfield {
-  def apply(initial: String, allowEmpty: Boolean): VerifyingTextField = new VerifyingTextField(initial, { input ⇒
+  def apply(initial: String, acceptable: Double ⇒ Boolean, allowEmpty: Boolean): VerifyingTextField = new VerifyingTextField(initial, { input ⇒
     if (allowEmpty && input.isEmpty) Some("")
     else Calculator(input) match {
-      case Right(v) ⇒
+      case Right(v) if acceptable(v) ⇒
         Some(f"$v%.1f")
       case _ ⇒ None
     }

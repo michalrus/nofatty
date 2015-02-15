@@ -43,11 +43,11 @@ final class AutocompletionCellEditor(completions: ⇒ Vector[String]) extends We
   }
 }
 
-final class CalculatorCellEditor extends WeirdTextFieldCellEditor { self ⇒
+final class CalculatorCellEditor(acceptable: Double ⇒ Boolean) extends WeirdTextFieldCellEditor { self ⇒
   override def textFieldFactory = new VerifyingTextField("", { input ⇒
     Calculator(input) match {
-      case Right(_) ⇒ Some(input)
-      case _        ⇒ None
+      case Right(v) if acceptable(v) ⇒ Some(input)
+      case _                         ⇒ None
     }
   }, false, true)
 }
