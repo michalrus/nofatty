@@ -20,8 +20,7 @@ class InputPane extends JPanel {
     ys.foldLeft(NutritionalValue.Zero)(_ + _)
   }
 
-  def setDate(d: LocalDate): Unit = {
-    date.setDate(d)
+  private[this] def onDateChanged(d: LocalDate): Unit = {
     day.set(Days find d)
     model.fireTableDataChanged()
     stats.setData(sumEatenProducts(day.get.toSeq flatMap (_.eatenProducts)))
@@ -30,7 +29,7 @@ class InputPane extends JPanel {
 
   val day = new AtomicReference[Option[Day]](None)
 
-  val date = new LocalDateInput(LocalDate.now, setDate)
+  val date = new LocalDateInput(LocalDate.now, onDateChanged)
   val stats = new StatsPane
 
   val weight = CalculatorTextfield("4.5+1", _ > 0.0, allowEmpty = true)
@@ -118,7 +117,7 @@ class InputPane extends JPanel {
 
   edt { weight.requestFocus() }
 
-  setDate(LocalDate.now)
+  onDateChanged(date.date)
 
   private[this] def layout(): Unit = {
     table.setFillsViewportHeight(true)
