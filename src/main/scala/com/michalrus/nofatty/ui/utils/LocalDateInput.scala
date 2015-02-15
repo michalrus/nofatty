@@ -31,28 +31,31 @@ class LocalDateInput(initialDate: LocalDate, onChange: LocalDate ⇒ Unit) exten
 
   def date: LocalDate = currentDate.get
 
+  private[this] def focus(): Unit = {
+    text.requestFocus()
+    text.selectAll()
+  }
+
   def setDate(d: LocalDate): Unit = {
     if (currentDate.get != d)
       text.setText(formatter.print(d))
   }
   private[this] def plusOneDay(): Unit = {
     text.setText(formatter.print(currentDate.get.plusDays(1)))
-    text.requestFocus()
-    text.selectAll()
+    focus()
   }
   private[this] def minusOneDay(): Unit = {
     text.setText(formatter.print(currentDate.get.minusDays(1)))
-    text.requestFocus()
-    text.selectAll()
+    focus()
   }
 
   prev.setFocusable(false)
   next.setFocusable(false)
   prev.addActionListener(new ActionListener {
-    override def actionPerformed(e: ActionEvent): Unit = minusOneDay()
+    override def actionPerformed(e: ActionEvent): Unit = { focus(); edt { minusOneDay() } }
   })
   next.addActionListener(new ActionListener {
-    override def actionPerformed(e: ActionEvent): Unit = plusOneDay()
+    override def actionPerformed(e: ActionEvent): Unit = { focus(); edt { plusOneDay() } }
   })
 
   text.addKeyListener(new KeyListener {
