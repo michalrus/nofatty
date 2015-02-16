@@ -8,7 +8,7 @@ import javax.swing.event.{ DocumentEvent, DocumentListener, ListSelectionEvent, 
 import javax.swing.table.DefaultTableCellRenderer
 
 import com.michalrus.nofatty.data._
-import com.michalrus.nofatty.ui.utils.{ VerifyingTextField, CalculatorTextfield, FilteringListCellRenderer }
+import com.michalrus.nofatty.ui.utils.{ VerifyingTextField, CalculatorTextfield, FilteringListCellRenderer, edt }
 import org.joda.time.DateTime
 
 class ProductListPane(onProductsEdited: ⇒ Unit) extends JPanel {
@@ -50,6 +50,8 @@ class ProductListPane(onProductsEdited: ⇒ Unit) extends JPanel {
 
   val stats = new StatsPane
 
+  val convertButton = new JButton
+
   val ingredients = {
     val t = new JTable(Array(Array[AnyRef]("Cow butter", "13.4")), Array[AnyRef]("Ingredient", "Grams"))
     t.getColumnModel.getColumn(1).setCellRenderer({
@@ -64,11 +66,11 @@ class ProductListPane(onProductsEdited: ⇒ Unit) extends JPanel {
   val nutritionalValues = {
     def g = CalculatorTextfield("", _ >= 0.0, allowEmpty = true)
     Seq[(String, VerifyingTextField, BasicProduct ⇒ String, (BasicProduct, String, Double) ⇒ BasicProduct)](
-      ("Kilocalories:", g, _.kcalExpr, (p, e, v) ⇒ p.copy(kcalExpr = e, nutrition = p.nutrition.copy(kcal = v))),
-      ("Protein:", g, _.proteinExpr, (p, e, v) ⇒ p.copy(proteinExpr = e, nutrition = p.nutrition.copy(protein = v))),
-      ("Fat:", g, _.fatExpr, (p, e, v) ⇒ p.copy(fatExpr = e, nutrition = p.nutrition.copy(fat = v))),
-      ("Carbohydrate:", g, _.carbohydrateExpr, (p, e, v) ⇒ p.copy(carbohydrateExpr = e, nutrition = p.nutrition.copy(carbohydrate = v))),
-      ("Fiber:", g, _.fiberExpr, (p, e, v) ⇒ p.copy(fiberExpr = e, nutrition = p.nutrition.copy(fiber = v)))
+      ("Energy [kcal]:", g, _.kcalExpr, (p, e, v) ⇒ p.copy(kcalExpr = e, nutrition = p.nutrition.copy(kcal = v))),
+      ("Protein [g]:", g, _.proteinExpr, (p, e, v) ⇒ p.copy(proteinExpr = e, nutrition = p.nutrition.copy(protein = v))),
+      ("Fat [g]:", g, _.fatExpr, (p, e, v) ⇒ p.copy(fatExpr = e, nutrition = p.nutrition.copy(fat = v))),
+      ("Carbohydrate [g]:", g, _.carbohydrateExpr, (p, e, v) ⇒ p.copy(carbohydrateExpr = e, nutrition = p.nutrition.copy(carbohydrate = v))),
+      ("Fiber [g]:", g, _.fiberExpr, (p, e, v) ⇒ p.copy(fiberExpr = e, nutrition = p.nutrition.copy(fiber = v)))
     )
   }
 
@@ -89,7 +91,9 @@ class ProductListPane(onProductsEdited: ⇒ Unit) extends JPanel {
       })
   }
 
-  def refresh(): Unit =
+  def refresh(): Unit = {
+    val ConvertToBasic = "Convert to a basic product…"
+    val ConvertToCompound = "Convert to a compound product…"
     product.get match {
       case Some(prod: BasicProduct) ⇒
         compoundPane.setVisible(false)
@@ -100,16 +104,23 @@ class ProductListPane(onProductsEdited: ⇒ Unit) extends JPanel {
             field.setEnabled(true)
         }
         stats.setData(prod.nutrition)
+        convertButton.setText(ConvertToCompound)
+        convertButton.setEnabled(true)
       case Some(prod: CompoundProduct) ⇒
         compoundPane.setVisible(true)
         basicPane.setVisible(false)
         stats.setData(prod.nutrition)
+        convertButton.setText(ConvertToBasic)
+        convertButton.setEnabled(true)
       case _ ⇒
         compoundPane.setVisible(false)
         basicPane.setVisible(true)
         nutritionalValues map (_._2) foreach { f ⇒ f.reset(""); f.setEnabled(false) }
         stats.setData(NutritionalValue.Zero)
+        convertButton.setText(ConvertToCompound)
+        convertButton.setEnabled(false)
     }
+  }
 
   val compoundPane = new JScrollPane(ingredients)
 
@@ -123,7 +134,7 @@ class ProductListPane(onProductsEdited: ⇒ Unit) extends JPanel {
     c.gridy = 0
     c.weightx = 1.0
     c.weighty = 1.0
-    c.insets = new Insets(5, 5, 5, 5)
+    c.insets = new Insets(5, 0, 5, 0)
     c.fill = GridBagConstraints.BOTH
     c.gridwidth = 2
     p.add(new JLabel("Nutritional values in 100 grams:"), c)
@@ -133,12 +144,11 @@ class ProductListPane(onProductsEdited: ⇒ Unit) extends JPanel {
       case (label, field, _, _) ⇒
         c.gridy += 1
         c.gridx = 0
-        c.insets = new Insets(5, 15, 5, 5)
+        c.insets = new Insets(5, 15, 5, 0)
         val l = new JLabel(label)
-        //        l.setPreferredSize(new Dimension(100, 0))
         p.add(l, c)
         c.gridx += 1
-        c.insets = new Insets(5, 5, 5, 5)
+        c.insets = new Insets(5, 0, 5, 0)
         p.add(field, c)
         field.setPreferredSize(new Dimension(150, 0))
     }
@@ -166,7 +176,16 @@ class ProductListPane(onProductsEdited: ⇒ Unit) extends JPanel {
     c.weightx = 1.0
     c.weighty = 0.0
     c.fill = GridBagConstraints.HORIZONTAL
-    add(filter, c)
+    add({
+      val jp = new JPanel
+      jp.setOpaque(false)
+      jp.setLayout(new BorderLayout)
+      jp.add(filter, BorderLayout.CENTER)
+      val add = new JButton("+")
+      edt { add.setPreferredSize(new Dimension(add.getHeight, 0)) }
+      jp.add(add, BorderLayout.LINE_END)
+      jp
+    }, c)
 
     c.gridy += 1
     c.insets = new Insets(0, 5, 5, 5)
@@ -187,6 +206,15 @@ class ProductListPane(onProductsEdited: ⇒ Unit) extends JPanel {
     c.gridy += 1
     compoundPane.setPreferredSize(new Dimension(0, 250))
     add(compoundPane, c)
+
+    c.gridy += 1
+    add({
+      val jp = new JPanel
+      jp.setOpaque(false)
+      jp.setLayout(new BorderLayout)
+      jp.add(convertButton, BorderLayout.LINE_END)
+      jp
+    }, c)
 
     basicPane.setVisible(true)
     compoundPane.setVisible(false)

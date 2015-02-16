@@ -1,7 +1,7 @@
 package com.michalrus.nofatty.ui.utils
 
 import java.awt.event.{ ActionEvent, ActionListener, KeyEvent, KeyListener }
-import java.awt.{ Dimension, GridBagConstraints, GridBagLayout }
+import java.awt.{ Graphics, Dimension, GridBagConstraints, GridBagLayout }
 import java.util.concurrent.atomic.AtomicReference
 import javax.swing.{ JButton, JPanel }
 
@@ -90,5 +90,11 @@ class LocalDateInput(initialDate: LocalDate, onChange: LocalDate ⇒ Unit) exten
 
   c.gridx += 1; c.weightx = 0.0
   add(next, c)
+
+  override def paintChildren(g: Graphics): Unit = {
+    super.paintChildren(g)
+    prev.setPreferredSize(new Dimension(prev.getHeight, 0))
+    next.setPreferredSize(new Dimension(next.getHeight, 0))
+  }
 
 }
