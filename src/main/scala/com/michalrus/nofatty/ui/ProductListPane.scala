@@ -1,33 +1,50 @@
 package com.michalrus.nofatty.ui
 
 import java.awt._
+import java.util.concurrent.atomic.AtomicReference
 import javax.swing._
-import javax.swing.event.{ DocumentEvent, DocumentListener }
+import javax.swing.event.{ DocumentEvent, DocumentListener, ListSelectionEvent, ListSelectionListener }
 import javax.swing.table.DefaultTableCellRenderer
 
-import com.michalrus.nofatty.data.Products
-import com.michalrus.nofatty.ui.utils.FilteringListCellRenderer
+import com.michalrus.nofatty.data._
+import com.michalrus.nofatty.ui.utils.{ VerifyingTextField, CalculatorTextfield, FilteringListCellRenderer }
 
 class ProductListPane extends JPanel {
 
   val filter = new JTextField
 
   filter.getDocument.addDocumentListener(new DocumentListener {
-    import language.reflectiveCalls
+    import scala.language.reflectiveCalls
     override def insertUpdate(e: DocumentEvent): Unit = productsModel.refresh()
     override def changedUpdate(e: DocumentEvent): Unit = productsModel.refresh()
     override def removeUpdate(e: DocumentEvent): Unit = productsModel.refresh()
   })
 
   val productsModel = new AbstractListModel[String] {
-    def refresh(): Unit = fireContentsChanged(this, 0, Int.MaxValue)
+    def refresh(): Unit = {
+      fireContentsChanged(this, 0, Int.MaxValue)
+      products.clearSelection()
+      products.setSelectedIndex(0)
+      onSelectionChanged()
+    }
     val predicate: String ⇒ Boolean = _.toLowerCase contains filter.getText.toLowerCase
     override def getSize: Int = Products.names.keySet count predicate
     override def getElementAt(index: Int): String = Products.names.keySet.filter(predicate).toVector.sorted.apply(index)
   }
 
-  val products = new JList(productsModel)
+  val product = new AtomicReference[Option[Product]](None)
+
+  def onSelectionChanged(): Unit = {
+    product.set(Option(products.getSelectedValue) flatMap Products.names.get flatMap Products.find)
+    refresh()
+  }
+
+  val products: JList[String] = new JList(productsModel)
+  products.setSelectionMode(ListSelectionModel.SINGLE_SELECTION)
   products.setCellRenderer(FilteringListCellRenderer(filter.getText))
+  products.getSelectionModel.addListSelectionListener(new ListSelectionListener {
+    override def valueChanged(e: ListSelectionEvent): Unit = onSelectionChanged()
+  })
 
   val stats = new StatsPane
 
@@ -38,10 +55,35 @@ class ProductListPane extends JPanel {
       r.setHorizontalAlignment(SwingConstants.RIGHT)
       r
     })
+    t.setCellSelectionEnabled(true)
     t
   }
 
-  val name, kcal, protein, fat, carbohydrate, fiber = new JTextField
+  val kcal, protein, fat, carbohydrate, fiber = CalculatorTextfield("", _ >= 0.0, allowEmpty = true)
+
+  def refresh(): Unit =
+    product.get match {
+      case Some(prod: BasicProduct) ⇒
+        compoundPane.setVisible(false)
+        basicPane.setVisible(true)
+        Map[VerifyingTextField, NutritionalValue ⇒ Double](
+          kcal → (_.kcal), protein → (_.protein), fat → (_.fat),
+          carbohydrate → (_.carbohydrate), fiber → (_.fiber)) foreach {
+            case (f, v) ⇒
+              f.reset(f"${v(prod.nutrition)}%.1f")
+              f.setEnabled(true)
+          }
+        stats.setData(prod.nutrition)
+      case Some(prod: CompoundProduct) ⇒
+        compoundPane.setVisible(true)
+        basicPane.setVisible(false)
+        stats.setData(prod.nutrition)
+      case _ ⇒
+        compoundPane.setVisible(false)
+        basicPane.setVisible(true)
+        Set(kcal, protein, fat, carbohydrate, fiber) foreach { f ⇒ f.reset(""); f.setEnabled(false) }
+        stats.setData(NutritionalValue.Zero)
+    }
 
   val compoundPane = new JScrollPane(ingredients)
 
@@ -78,6 +120,7 @@ class ProductListPane extends JPanel {
   }
 
   layout()
+  refresh()
 
   private[this] def layout(): Unit = {
     setLayout(new GridBagLayout)

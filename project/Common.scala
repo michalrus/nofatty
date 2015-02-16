@@ -17,7 +17,7 @@ object Common {
 
     resolvers ++= Seq(R.MichalRus),
 
-    wartremoverErrors ++= Warts.allBut(Wart.Nothing, Wart.Any, Wart.NoNeedForMonad),
+    wartremoverErrors ++= Warts.allBut(Wart.Nothing, Wart.Any, Wart.NoNeedForMonad, Wart.IsInstanceOf, Wart.AsInstanceOf),
 
     autoAPIMappings := true
   )
