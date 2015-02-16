@@ -66,11 +66,11 @@ class ProductListPane extends JPanel {
       case Some(prod: BasicProduct) ⇒
         compoundPane.setVisible(false)
         basicPane.setVisible(true)
-        Map[VerifyingTextField, NutritionalValue ⇒ Double](
-          kcal → (_.kcal), protein → (_.protein), fat → (_.fat),
-          carbohydrate → (_.carbohydrate), fiber → (_.fiber)) foreach {
+        Map[VerifyingTextField, BasicProduct ⇒ String](
+          kcal → (_.kcalExpr), protein → (_.proteinExpr), fat → (_.fatExpr),
+          carbohydrate → (_.carbohydrateExpr), fiber → (_.fiberExpr)) foreach {
             case (f, v) ⇒
-              f.reset(f"${v(prod.nutrition)}%.1f")
+              f.reset(v(prod))
               f.setEnabled(true)
           }
         stats.setData(prod.nutrition)

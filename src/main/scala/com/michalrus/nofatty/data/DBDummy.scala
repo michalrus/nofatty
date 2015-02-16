@@ -9,13 +9,13 @@ import DB.{ discard ⇒ d }
 
 object DBDummy {
 
-  DB.db withSession { implicit session ⇒
+  DB.db withTransaction { implicit session ⇒
     val butterID, breadID, sandwichID = UUID.randomUUID
-    d { DB.basicProducts += ((butterID, DateTime.now, "Cow butter", 748, 0, 83, 0, 0)) }
-    d { DB.basicProducts += ((breadID, DateTime.now, "White bread", 257, 8.5, 1.4, 54.3, 2.7)) }
+    d { DB.basicProducts += ((butterID, DateTime.now, "Cow butter", "748", 748, "0", 0, "83", 83, "0", 0, "0", 0)) }
+    d { DB.basicProducts += ((breadID, DateTime.now, "White bread", "257", 257, "17/2", 8.5, "1.4", 1.4, "54.3", 54.3, "2.7", 2.7)) }
     d { DB.compoundProducts += ((sandwichID, DateTime.now, "Sandwich", 1.0)) }
-    d { DB.ingredients += ((sandwichID, breadID, 25)) }
-    d { DB.ingredients += ((sandwichID, butterID, 5)) }
+    d { DB.ingredients += ((sandwichID, breadID, "2*12.5", 25)) }
+    d { DB.ingredients += ((sandwichID, butterID, "5", 5)) }
 
     val today = LocalDate.now
     val yesterday = today minusDays 1

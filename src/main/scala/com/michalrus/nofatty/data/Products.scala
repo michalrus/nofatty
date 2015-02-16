@@ -30,11 +30,12 @@ sealed trait Product {
   def nutrition: NutritionalValue
 }
 
-final case class BasicProduct(uuid: UUID, lastModified: DateTime, name: String, nutrition: NutritionalValue) extends Product
+final case class BasicProduct(uuid: UUID, lastModified: DateTime, name: String, nutrition: NutritionalValue,
+                              kcalExpr: String, proteinExpr: String, fatExpr: String, carbohydrateExpr: String, fiberExpr: String) extends Product
 
-final case class CompoundProduct(uuid: UUID, lastModified: DateTime, name: String, massReduction: Double, ingredients: Map[UUID, Double]) extends Product {
+final case class CompoundProduct(uuid: UUID, lastModified: DateTime, name: String, massReduction: Double, ingredients: Map[UUID, (Double, String)]) extends Product {
   lazy val nutrition: NutritionalValue = {
-    val xs = ingredients flatMap { case (id, grams) ⇒ Products find id map (p ⇒ (p.nutrition, grams)) }
+    val xs = ingredients flatMap { case (id, (grams, gramsExpr)) ⇒ Products find id map (p ⇒ (p.nutrition, grams)) }
     NutritionalValue.weightedMean(xs.toSeq) * massReduction
   }
 }
@@ -44,12 +45,12 @@ object Products {
   private[this] val memo = new AtomicReference[Map[UUID, Product]]({
     DB.db withSession { implicit session ⇒
       val basics: Seq[Product] = DB.basicProducts.run map {
-        case (uuid, lastMod, name, kcal, prot, fat, carb, fib) ⇒
-          BasicProduct(uuid, lastMod, name, NutritionalValue(kcal, prot, fat, carb, fib))
+        case (uuid, lastMod, name, kcalE, kcal, protE, prot, fatE, fat, carbE, carb, fibE, fib) ⇒
+          BasicProduct(uuid, lastMod, name, NutritionalValue(kcal, prot, fat, carb, fib), kcalE, protE, fatE, carbE, fibE)
       }
       val compounds: Seq[Product] = DB.compoundProducts.run map {
         case (uuid, lastMod, name, massRed) ⇒
-          val ings = DB.ingredients.filter(_.compoundProductID === uuid).run map { case (_, u, g) ⇒ (u, g) }
+          val ings = DB.ingredients.filter(_.compoundProductID === uuid).run map { case (_, subprod, gramsE, grams) ⇒ (subprod, (grams, gramsE)) }
           CompoundProduct(uuid, lastMod, name, massRed, ings.toMap)
       }
       (basics ++ compounds).map(p ⇒ (p.uuid, p)).toMap

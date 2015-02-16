@@ -47,23 +47,29 @@ object DB {
 
   import Types._
 
-  final class BasicProducts(tag: Tag) extends Table[(UUID, DateTime, String, Double, Double, Double, Double, Double)](tag, "basic_products") {
+  final class BasicProducts(tag: Tag) extends Table[(UUID, DateTime, String, String, Double, String, Double, String, Double, String, Double, String, Double)](tag, "basic_products") {
     def uuid = column[UUID]("uuid", O.PrimaryKey)
     def lastModified = column[DateTime]("lastModified")
     def name = column[String]("name")
+    def kcalExpr = column[String]("kcal_expr")
     def kcal = column[Double]("kcal")
+    def proteinExpr = column[String]("protein_expr")
     def protein = column[Double]("protein")
+    def fatExpr = column[String]("fat_expr")
     def fat = column[Double]("fat")
+    def carbohydrateExpr = column[String]("carbohydrate_expr")
     def carbohydrate = column[Double]("carbohydrate")
+    def fiberExpr = column[String]("fiber_expr")
     def fiber = column[Double]("fiber")
-    override def * = (uuid, lastModified, name, kcal, protein, fat, carbohydrate, fiber)
+    override def * = (uuid, lastModified, name, kcalExpr, kcal, proteinExpr, protein, fatExpr, fat, carbohydrateExpr, carbohydrate, fiberExpr, fiber)
   }
 
-  final class Ingredients(tag: Tag) extends Table[(UUID, UUID, Double)](tag, "ingredients") {
+  final class Ingredients(tag: Tag) extends Table[(UUID, UUID, String, Double)](tag, "ingredients") {
     def compoundProductID = column[UUID]("compound_product")
     def basicProductID = column[UUID]("basic_product")
+    def gramsExpr = column[String]("grams_expr")
     def grams = column[Double]("grams")
-    override def * = (compoundProductID, basicProductID, grams)
+    override def * = (compoundProductID, basicProductID, gramsExpr, grams)
     def pk = primaryKey("ingredients_pk", (compoundProductID, basicProductID))
     def compoundProduct = foreignKey("compound_product_fk", compoundProductID, compoundProducts)(_.uuid)
     def basicProduct = foreignKey("basic_product_fk", basicProductID, basicProducts)(_.uuid)
