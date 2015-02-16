@@ -2,14 +2,33 @@ package com.michalrus.nofatty.ui
 
 import java.awt._
 import javax.swing._
+import javax.swing.event.{ DocumentEvent, DocumentListener }
 import javax.swing.table.DefaultTableCellRenderer
 
 import com.michalrus.nofatty.data.Products
+import com.michalrus.nofatty.ui.utils.FilteringListCellRenderer
 
 class ProductListPane extends JPanel {
 
   val filter = new JTextField
-  val products = new JList(Products.names.keySet.toArray)
+
+  filter.getDocument.addDocumentListener(new DocumentListener {
+    import language.reflectiveCalls
+    override def insertUpdate(e: DocumentEvent): Unit = productsModel.refresh()
+    override def changedUpdate(e: DocumentEvent): Unit = productsModel.refresh()
+    override def removeUpdate(e: DocumentEvent): Unit = productsModel.refresh()
+  })
+
+  val productsModel = new AbstractListModel[String] {
+    def refresh(): Unit = fireContentsChanged(this, 0, Int.MaxValue)
+    val predicate: String ⇒ Boolean = _.toLowerCase contains filter.getText.toLowerCase
+    override def getSize: Int = Products.names.keySet count predicate
+    override def getElementAt(index: Int): String = Products.names.keySet.filter(predicate).toVector.sorted.apply(index)
+  }
+
+  val products = new JList(productsModel)
+  products.setCellRenderer(FilteringListCellRenderer(filter.getText))
+
   val stats = new StatsPane
 
   val ingredients = {

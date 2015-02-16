@@ -9,6 +9,14 @@ import javax.swing.text.JTextComponent
 
 import com.michalrus.nofatty.ui.DefaultListCellRendererModifier
 
+object FilteringListCellRenderer {
+  def apply(hilight: ⇒ String) = new DefaultListCellRendererModifier({ obj ⇒
+    val s = s"(?i)${Pattern.quote(hilight)}".r.replaceAllIn(s"$obj", mtch ⇒ s"\u0000${mtch.group(0)}\u0001")
+    val e = s.replace("<", "&lt;").replace(">", "&gt;").replace("\u0000", "<font color=purple><b>").replace("\u0001", "</b></font>")
+    s"<html>$e</html>"
+  })
+}
+
 trait Autocompletion extends TextFieldUsableAsCellEditor { self: JTextComponent ⇒
   def completions: Vector[String]
 
@@ -35,11 +43,7 @@ trait Autocompletion extends TextFieldUsableAsCellEditor { self: JTextComponent 
       l.addMouseListener(new MouseAdapter {
         override def mouseClicked(e: MouseEvent): Unit = if (e.getClickCount > 1) acceptSelection()
       })
-      l.setCellRenderer(new DefaultListCellRendererModifier({ obj ⇒
-        val s = s"(?i)${Pattern.quote(self.getText)}".r.replaceAllIn(s"$obj", mtch ⇒ s"\u0000${mtch.group(0)}\u0001")
-        val e = s.replace("<", "&lt;").replace(">", "&gt;").replace("\u0000", "<font color=purple><b>").replace("\u0001", "</b></font>")
-        s"<html>$e</html>"
-      }))
+      l.setCellRenderer(FilteringListCellRenderer(self.getText))
       l
     }
     lazy val popup = {
