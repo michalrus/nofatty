@@ -1,6 +1,7 @@
 package com.michalrus.nofatty.ui
 
 import java.awt._
+import java.awt.event.{ FocusEvent, FocusListener }
 import java.util.concurrent.atomic.AtomicReference
 import javax.swing._
 import javax.swing.event.{ DocumentEvent, DocumentListener, ListSelectionEvent, ListSelectionListener }
@@ -8,8 +9,9 @@ import javax.swing.table.DefaultTableCellRenderer
 
 import com.michalrus.nofatty.data._
 import com.michalrus.nofatty.ui.utils.{ VerifyingTextField, CalculatorTextfield, FilteringListCellRenderer }
+import org.joda.time.DateTime
 
-class ProductListPane extends JPanel {
+class ProductListPane(onProductsEdited: ⇒ Unit) extends JPanel {
 
   val filter = new JTextField
 
@@ -59,20 +61,44 @@ class ProductListPane extends JPanel {
     t
   }
 
-  val kcal, protein, fat, carbohydrate, fiber = CalculatorTextfield("", _ >= 0.0, allowEmpty = true)
+  val nutritionalValues = {
+    def g = CalculatorTextfield("", _ >= 0.0, allowEmpty = true)
+    Seq[(String, VerifyingTextField, BasicProduct ⇒ String, (BasicProduct, String, Double) ⇒ BasicProduct)](
+      ("Kilocalories:", g, _.kcalExpr, (p, e, v) ⇒ p.copy(kcalExpr = e, nutrition = p.nutrition.copy(kcal = v))),
+      ("Protein:", g, _.proteinExpr, (p, e, v) ⇒ p.copy(proteinExpr = e, nutrition = p.nutrition.copy(protein = v))),
+      ("Fat:", g, _.fatExpr, (p, e, v) ⇒ p.copy(fatExpr = e, nutrition = p.nutrition.copy(fat = v))),
+      ("Carbohydrate:", g, _.carbohydrateExpr, (p, e, v) ⇒ p.copy(carbohydrateExpr = e, nutrition = p.nutrition.copy(carbohydrate = v))),
+      ("Fiber:", g, _.fiberExpr, (p, e, v) ⇒ p.copy(fiberExpr = e, nutrition = p.nutrition.copy(fiber = v)))
+    )
+  }
+
+  nutritionalValues foreach {
+    case (_, field, reader, modifier) ⇒
+      field.addFocusListener(new FocusListener {
+        override def focusGained(e: FocusEvent): Unit = ()
+        override def focusLost(e: FocusEvent): Unit = {
+          product.get match {
+            case Some(prod: BasicProduct) if field.originalInput != reader(prod) ⇒
+              val newProd = modifier(prod, field.originalInput, field.correctedInput filter (_.nonEmpty) map (_.toDouble) getOrElse 0.0)
+              Products.commit(newProd.copy(lastModified = DateTime.now))
+              onSelectionChanged()
+              onProductsEdited
+            case _ ⇒
+          }
+        }
+      })
+  }
 
   def refresh(): Unit =
     product.get match {
       case Some(prod: BasicProduct) ⇒
         compoundPane.setVisible(false)
         basicPane.setVisible(true)
-        Map[VerifyingTextField, BasicProduct ⇒ String](
-          kcal → (_.kcalExpr), protein → (_.proteinExpr), fat → (_.fatExpr),
-          carbohydrate → (_.carbohydrateExpr), fiber → (_.fiberExpr)) foreach {
-            case (f, v) ⇒
-              f.reset(v(prod))
-              f.setEnabled(true)
-          }
+        nutritionalValues foreach {
+          case (_, field, reader, _) ⇒
+            field.reset(reader(prod))
+            field.setEnabled(true)
+        }
         stats.setData(prod.nutrition)
       case Some(prod: CompoundProduct) ⇒
         compoundPane.setVisible(true)
@@ -81,7 +107,7 @@ class ProductListPane extends JPanel {
       case _ ⇒
         compoundPane.setVisible(false)
         basicPane.setVisible(true)
-        Set(kcal, protein, fat, carbohydrate, fiber) foreach { f ⇒ f.reset(""); f.setEnabled(false) }
+        nutritionalValues map (_._2) foreach { f ⇒ f.reset(""); f.setEnabled(false) }
         stats.setData(NutritionalValue.Zero)
     }
 
@@ -103,8 +129,8 @@ class ProductListPane extends JPanel {
     p.add(new JLabel("Nutritional values in 100 grams:"), c)
     c.gridwidth = 1
 
-    Seq("Kilocalories:" → kcal, "Protein:" → protein, "Fat:" → fat, "Carbohydrate:" → carbohydrate, "Fiber:" → fiber) foreach {
-      case (label, field) ⇒
+    nutritionalValues foreach {
+      case (label, field, _, _) ⇒
         c.gridy += 1
         c.gridx = 0
         c.insets = new Insets(5, 15, 5, 5)

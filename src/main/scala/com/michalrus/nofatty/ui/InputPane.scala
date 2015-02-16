@@ -17,6 +17,10 @@ import scala.util.Try
 
 class InputPane extends JPanel {
 
+  def refresh(): Unit = {
+    onDateChanged(date.date)
+  }
+
   def sumEatenProducts(xs: Seq[EatenProduct]): NutritionalValue = {
     val ys = xs flatMap (ep ⇒ Products find ep.product map (p ⇒ p.nutrition * (ep.grams / 100.0)))
     ys.foldLeft(NutritionalValue.Zero)(_ + _)

@@ -21,8 +21,11 @@ object Ui {
       val ltv = new JTabbedPane()
       f.add(ltv, BorderLayout.LINE_START)
 
-      ltv.addTab("Daily input", new InputPane)
-      ltv.addTab("Products", new ProductListPane)
+      val inputPane = new InputPane
+      ltv.addTab("Daily input", inputPane)
+      ltv.addTab("Products", new ProductListPane({
+        inputPane.refresh()
+      }))
 
       def rtv(select: Int): JTabbedPane = {
         val r = new JTabbedPane()

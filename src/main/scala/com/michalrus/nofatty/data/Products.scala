@@ -6,6 +6,8 @@ import java.util.concurrent.atomic.AtomicReference
 import scala.slick.driver.SQLiteDriver.simple._
 import org.joda.time.DateTime
 
+import DB.discard
+
 final case class NutritionalValue(kcal: Double, protein: Double, fat: Double, carbohydrate: Double, fiber: Double) {
   def +(that: NutritionalValue): NutritionalValue = NutritionalValue(
     this.kcal + that.kcal, this.protein + that.protein, this.fat + that.fat, this.carbohydrate + that.carbohydrate, this.fiber + that.fiber)
@@ -60,5 +62,27 @@ object Products {
   def names: Map[String, UUID] = memo.get map { case (u, p) ⇒ (p.name, u) }
 
   def find(uuid: UUID): Option[Product] = memo.get.get(uuid)
+
+  def commit(p: BasicProduct): Unit = {
+    DB.db withTransaction { implicit session ⇒
+      discard { DB.basicProducts.filter(_.uuid === p.uuid).delete }
+      discard { DB.compoundProducts.filter(_.uuid === p.uuid).delete }
+      discard {
+        DB.basicProducts += ((p.uuid, p.lastModified, p.name,
+          p.kcalExpr, p.nutrition.kcal, p.proteinExpr, p.nutrition.protein, p.fatExpr, p.nutrition.fat,
+          p.carbohydrateExpr, p.nutrition.carbohydrate, p.fiberExpr, p.nutrition.fiber))
+      }
+      memo.set(memo.get + (p.uuid → p))
+      invalidateProductsContaining(p.uuid)
+    }
+  }
+
+  private[this] def invalidateProductsContaining(uuid: UUID): Unit = {
+    val directParents = memo.get.values collect {
+      case prod: CompoundProduct if prod.ingredients contains uuid ⇒ prod
+    }
+    directParents foreach (p ⇒ memo.set(memo.get + (p.uuid → p.copy()))) // just copy, to invalidate lazy val CompoundProduct#nutrition
+    directParents map (_.uuid) foreach invalidateProductsContaining // invalidate their parents
+  }
 
 }
