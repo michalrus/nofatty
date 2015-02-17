@@ -22,8 +22,10 @@ class ProductListPane(onProductsEdited: ⇒ Unit) extends JPanel {
     JOptionPane.showMessageDialog(ProductListPane.this.getRootPane,
       s"Product “$name” already exists.", "Already exists", JOptionPane.ERROR_MESSAGE)
 
+  private[this] val WhiteSpace = """\s+""".r
+  private[this] def sanitizeName(name: String): Option[String] = Option(WhiteSpace.replaceAllIn(name, " ")).map(_.trim).filter(_.nonEmpty)
+
   addButton.addActionListener(new ActionListener {
-    val WS = """\s+""".r
     val OBasic = "Basic product"
     val OCompound = "Compound product"
     val OCancel = "Cancel"
@@ -35,7 +37,7 @@ class ProductListPane(onProductsEdited: ⇒ Unit) extends JPanel {
       dia.setVisible(true)
       dia.dispose()
       val value = Option(pane.getValue).map(_.toString)
-      val input = Option(pane.getInputValue).map(_.toString).map(WS.replaceAllIn(_, " ")).map(_.trim).filter(_.nonEmpty)
+      val input = Option(pane.getInputValue).map(_.toString).flatMap(sanitizeName)
 
       def commit(name: String, p: ⇒ Product): Unit = {
         if (Products.names.get(name).isDefined) errorAlreadyExists(name)
@@ -86,6 +88,28 @@ class ProductListPane(onProductsEdited: ⇒ Unit) extends JPanel {
     })
     l
   }
+
+  products.addMouseListener(new MouseAdapter {
+    override def mouseClicked(e: MouseEvent): Unit = {
+      if (e.getClickCount > 1) {
+        product.get match {
+          case Some(prod) ⇒
+            Option(JOptionPane.showInputDialog(ProductListPane.this.getRootPane,
+              "Enter a new name:", "Rename", JOptionPane.QUESTION_MESSAGE, Unsafe.NullIcon,
+              Unsafe.NullArrayAnyRef, prod.name)).map(_.toString).flatMap(sanitizeName) match {
+              case Some(newName) ⇒
+                Products.commit(prod match {
+                  case p: BasicProduct    ⇒ p.copy(name = newName, lastModified = DateTime.now)
+                  case p: CompoundProduct ⇒ p.copy(name = newName, lastModified = DateTime.now)
+                })
+                filter.setText(newName)
+              case _ ⇒
+            }
+          case _ ⇒
+        }
+      }
+    }
+  })
 
   val stats = new StatsPane
   stats.setTitle("100 grams of the product")
