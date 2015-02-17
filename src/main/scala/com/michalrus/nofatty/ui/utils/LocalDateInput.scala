@@ -13,8 +13,8 @@ import scala.util.Try
 class LocalDateInput(initialDate: LocalDate, onChange: LocalDate ⇒ Unit) extends JPanel {
 
   private[this] val formatter = DateTimeFormat.forPattern("MMMM d, Y")
-  private[this] val prev = new JButton("«")
-  private[this] val next = new JButton("»")
+  private[this] val prev = new JButton("←")
+  private[this] val next = new JButton("→")
 
   private[this] val currentDate = new AtomicReference[LocalDate](initialDate)
 
