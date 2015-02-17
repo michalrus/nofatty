@@ -52,6 +52,7 @@ class ProductListPane(onProductsEdited: ⇒ Unit) extends JPanel {
   }
 
   val stats = new StatsPane
+  stats.setTitle("100 grams of the product")
 
   val convertButton = new JButton
 

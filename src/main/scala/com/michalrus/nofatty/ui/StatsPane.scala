@@ -1,11 +1,16 @@
 package com.michalrus.nofatty.ui
 
-import java.awt.{ Font, Color, GridLayout }
-import javax.swing.{ JLabel, JPanel }
+import java.awt.{ Color, Font, GridLayout }
+import javax.swing.border.{ TitledBorder, EmptyBorder }
+import javax.swing.{ BorderFactory, JLabel, JPanel }
 
 import com.michalrus.nofatty.data.NutritionalValue
 
 class StatsPane extends JPanel {
+
+  def setTitle(t: String): Unit = {
+    border.setTitle(t)
+  }
 
   def setData(n: NutritionalValue): Unit = {
     lKcal setText intFormatter.format(n.kcal)
@@ -39,12 +44,16 @@ class StatsPane extends JPanel {
   private[this] val pProtein, pFat, pCarbohydrate, pFiber = new JLabel
   private[this] val rProtein, rFat, rCarbohydrate, rFiber = new JLabel
   private[this] val intFormatter = java.text.NumberFormat.getIntegerInstance
+  private[this] val border = BorderFactory.createTitledBorder("")
 
   init()
 
   private[this] def init(): Unit = {
     setOpaque(false)
     setLayout(new GridLayout(4, 5))
+
+    border.setTitleJustification(TitledBorder.CENTER)
+    setBorder(BorderFactory.createCompoundBorder(border, new EmptyBorder(0, 5, 5, 5)))
 
     def title(j: JLabel): JLabel = {
       j.setFont(new Font(j.getFont.getName, Font.ITALIC, j.getFont.getSize))

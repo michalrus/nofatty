@@ -43,7 +43,7 @@ object Ui {
 
       f.setVisible(true)
       split.setDividerLocation(0.5)
-      ltv.setPreferredSize(new Dimension(350, 0))
+      ltv.setPreferredSize(new Dimension(360, 0))
     }
   }
 

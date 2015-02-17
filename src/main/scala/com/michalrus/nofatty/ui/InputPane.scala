@@ -39,7 +39,9 @@ class InputPane extends JPanel {
 
   val date = new LocalDateInput(LocalDate.now, onDateChanged)
   val stats = new StatsPane
+  stats.setTitle("Totals on this day")
   val selectionStats = new StatsPane
+  selectionStats.setTitle("Selection")
 
   val weight = CalculatorTextfield("", _ > 0.0, allowEmpty = true)
 
