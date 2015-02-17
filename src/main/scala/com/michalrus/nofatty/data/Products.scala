@@ -38,7 +38,8 @@ final case class BasicProduct(uuid: UUID, lastModified: DateTime, name: String, 
 final case class CompoundProduct(uuid: UUID, lastModified: DateTime, name: String, massReduction: Double, ingredients: Map[UUID, (Double, String)]) extends Product {
   lazy val nutrition: NutritionalValue = {
     val xs = ingredients flatMap { case (id, (grams, gramsExpr)) ⇒ Products find id map (p ⇒ (p.nutrition, grams)) }
-    NutritionalValue.weightedMean(xs.toSeq) * massReduction
+    if (xs.isEmpty) NutritionalValue.Zero
+    else NutritionalValue.weightedMean(xs.toSeq) * massReduction
   }
 }
 
@@ -63,14 +64,21 @@ object Products {
 
   def find(uuid: UUID): Option[Product] = memo.get.get(uuid)
 
-  def commit(p: BasicProduct): Unit = {
+  def commit(p: Product): Unit = {
     DB.db withTransaction { implicit session ⇒
       discard { DB.basicProducts.filter(_.uuid === p.uuid).delete }
       discard { DB.compoundProducts.filter(_.uuid === p.uuid).delete }
       discard {
-        DB.basicProducts += ((p.uuid, p.lastModified, p.name,
-          p.kcalExpr, p.nutrition.kcal, p.proteinExpr, p.nutrition.protein, p.fatExpr, p.nutrition.fat,
-          p.carbohydrateExpr, p.nutrition.carbohydrate, p.fiberExpr, p.nutrition.fiber))
+        p match {
+          case p: BasicProduct ⇒
+            DB.basicProducts += ((p.uuid, p.lastModified, p.name,
+              p.kcalExpr, p.nutrition.kcal, p.proteinExpr, p.nutrition.protein, p.fatExpr, p.nutrition.fat,
+              p.carbohydrateExpr, p.nutrition.carbohydrate, p.fiberExpr, p.nutrition.fiber))
+          case p: CompoundProduct ⇒
+            discard { DB.ingredients.filter(_.compoundProductID === p.uuid).delete }
+            discard { DB.compoundProducts += ((p.uuid, p.lastModified, p.name, p.massReduction)) }
+            discard { DB.ingredients ++= p.ingredients map { case (uuid, (grams, gramsExpr)) ⇒ (p.uuid, uuid, gramsExpr, grams) } }
+        }
       }
       memo.set(memo.get + (p.uuid → p))
       invalidateProductsContaining(p.uuid)

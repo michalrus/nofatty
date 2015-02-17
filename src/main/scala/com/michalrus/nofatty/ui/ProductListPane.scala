@@ -1,7 +1,8 @@
 package com.michalrus.nofatty.ui
 
 import java.awt._
-import java.awt.event.{ FocusEvent, FocusListener, KeyEvent }
+import java.awt.event._
+import java.util.UUID
 import java.util.concurrent.atomic.AtomicReference
 import javax.swing._
 import javax.swing.event.{ DocumentEvent, DocumentListener, ListSelectionEvent, ListSelectionListener }
@@ -14,6 +15,41 @@ import org.joda.time.DateTime
 class ProductListPane(onProductsEdited: ⇒ Unit) extends JPanel {
 
   val filter = new JTextField
+
+  val addButton = new JButton("+")
+
+  private[this] def errorAlreadyExists(name: String): Unit =
+    JOptionPane.showMessageDialog(ProductListPane.this.getRootPane,
+      s"Product “$name” already exists.", "Already exists", JOptionPane.ERROR_MESSAGE)
+
+  addButton.addActionListener(new ActionListener {
+    val WS = """\s+""".r
+    val OBasic = "Basic product"
+    val OCompound = "Compound product"
+    val OCancel = "Cancel"
+    override def actionPerformed(e: ActionEvent): Unit = {
+      val pane = new JOptionPane("Enter a name for the new product:", JOptionPane.QUESTION_MESSAGE,
+        JOptionPane.DEFAULT_OPTION, Unsafe.NullIcon, Array[AnyRef](OBasic, OCompound, OCancel))
+      pane.setWantsInput(true)
+      val dia = pane.createDialog(ProductListPane.this.getRootPane, "New product")
+      dia.setVisible(true)
+      dia.dispose()
+      val value = Option(pane.getValue).map(_.toString)
+      val input = Option(pane.getInputValue).map(_.toString).map(WS.replaceAllIn(_, " ")).map(_.trim).filter(_.nonEmpty)
+
+      def commit(name: String, p: ⇒ Product): Unit = {
+        if (Products.names.get(name).isDefined) errorAlreadyExists(name)
+        else Products.commit(p)
+        filter.setText(name)
+      }
+
+      (value, input) match {
+        case (Some(OBasic), Some(name))    ⇒ commit(name, BasicProduct(UUID.randomUUID(), DateTime.now, name, NutritionalValue.Zero, "", "", "", "", ""))
+        case (Some(OCompound), Some(name)) ⇒ commit(name, CompoundProduct(UUID.randomUUID(), DateTime.now, name, 1.0, Map.empty))
+        case _                             ⇒
+      }
+    }
+  })
 
   filter.getDocument.addDocumentListener(new DocumentListener {
     import scala.language.reflectiveCalls
@@ -231,9 +267,8 @@ class ProductListPane(onProductsEdited: ⇒ Unit) extends JPanel {
       jp.setOpaque(false)
       jp.setLayout(new BorderLayout)
       jp.add(filter, BorderLayout.CENTER)
-      val add = new JButton("+")
-      edt { add.setPreferredSize(new Dimension(add.getHeight, 0)) }
-      jp.add(add, BorderLayout.LINE_END)
+      edt { addButton.setPreferredSize(new Dimension(addButton.getHeight, 0)) }
+      jp.add(addButton, BorderLayout.LINE_END)
       jp
     }, c)
 
