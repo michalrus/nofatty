@@ -16,6 +16,12 @@ class ProductListPane(onProductsEdited: ⇒ Unit) extends JPanel {
 
   val filter = new JTextField
 
+  private[this] def setFilter(s: String): Unit = {
+    filter.setText(s)
+    filter.requestFocus()
+    filter.selectAll()
+  }
+
   val addButton = new JButton("+")
 
   private[this] def errorAlreadyExists(name: String): Unit =
@@ -42,7 +48,7 @@ class ProductListPane(onProductsEdited: ⇒ Unit) extends JPanel {
       def commit(name: String, p: ⇒ Product): Unit = {
         if (Products.names.get(name).isDefined) errorAlreadyExists(name)
         else Products.commit(p)
-        filter.setText(name)
+        setFilter(name)
       }
 
       (value, input) match {
@@ -69,7 +75,7 @@ class ProductListPane(onProductsEdited: ⇒ Unit) extends JPanel {
     }
     val predicate: String ⇒ Boolean = _.toLowerCase contains filter.getText.toLowerCase
     override def getSize: Int = Products.names.keySet count predicate
-    override def getElementAt(index: Int): String = Products.names.keySet.filter(predicate).toVector.sorted.apply(index)
+    override def getElementAt(index: Int): String = Products.names.keySet.filter(predicate).toVector.sortWith(_.compareToIgnoreCase(_) < 0).apply(index)
   }
 
   val product = new AtomicReference[Option[Product]](None)
@@ -102,7 +108,8 @@ class ProductListPane(onProductsEdited: ⇒ Unit) extends JPanel {
                   case p: BasicProduct    ⇒ p.copy(name = newName, lastModified = DateTime.now)
                   case p: CompoundProduct ⇒ p.copy(name = newName, lastModified = DateTime.now)
                 })
-                filter.setText(newName)
+                setFilter(newName)
+                onProductsEdited
               case _ ⇒
             }
           case _ ⇒
