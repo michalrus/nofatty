@@ -1,14 +1,14 @@
 package com.michalrus.nofatty.ui
 
 import java.awt._
-import java.awt.event.{ FocusEvent, FocusListener }
+import java.awt.event.{ FocusEvent, FocusListener, KeyEvent }
 import java.util.concurrent.atomic.AtomicReference
 import javax.swing._
 import javax.swing.event.{ DocumentEvent, DocumentListener, ListSelectionEvent, ListSelectionListener }
-import javax.swing.table.DefaultTableCellRenderer
+import javax.swing.table.AbstractTableModel
 
 import com.michalrus.nofatty.data._
-import com.michalrus.nofatty.ui.utils.{ VerifyingTextField, CalculatorTextfield, FilteringListCellRenderer, edt }
+import com.michalrus.nofatty.ui.utils._
 import org.joda.time.DateTime
 
 class ProductListPane(onProductsEdited: ⇒ Unit) extends JPanel {
@@ -41,25 +41,73 @@ class ProductListPane(onProductsEdited: ⇒ Unit) extends JPanel {
     refresh()
   }
 
-  val products: JList[String] = new JList(productsModel)
-  products.setSelectionMode(ListSelectionModel.SINGLE_SELECTION)
-  products.setCellRenderer(FilteringListCellRenderer(filter.getText))
-  products.getSelectionModel.addListSelectionListener(new ListSelectionListener {
-    override def valueChanged(e: ListSelectionEvent): Unit = onSelectionChanged()
-  })
+  val products: JList[String] = {
+    val l = new JList(productsModel)
+    l.setSelectionMode(ListSelectionModel.SINGLE_SELECTION)
+    l.setCellRenderer(FilteringListCellRenderer(filter.getText))
+    l.getSelectionModel.addListSelectionListener(new ListSelectionListener {
+      override def valueChanged(e: ListSelectionEvent): Unit = onSelectionChanged()
+    })
+    l
+  }
 
   val stats = new StatsPane
 
   val convertButton = new JButton
 
+  val ingredientsModel = new AbstractTableModel {
+    override def getRowCount = product.get match {
+      case Some(prod: CompoundProduct) ⇒ 1 + prod.ingredients.size
+      case _                           ⇒ 0
+    }
+    override def getColumnCount = 2
+    override def getColumnName(column: Int) = column match {
+      case 0 ⇒ "Ingredient"
+      case 1 ⇒ "Grams"
+    }
+    override def getColumnClass(columnIndex: Int) = classOf[String]
+    override def isCellEditable(rowIndex: Int, columnIndex: Int) = true
+    override def getValueAt(rowIndex: Int, columnIndex: Int): String =
+      if (rowIndex >= getRowCount - 1) ""
+      else product.get match {
+        case Some(prod: CompoundProduct) ⇒
+          val ingrs = prod.ingredients.flatMap { case (uuid, (_, gramsExpr)) ⇒ Products find uuid map ((_, gramsExpr)) }
+            .toVector.sortBy(_._1.name)
+          columnIndex match {
+            case 0 ⇒ ingrs(rowIndex)._1.name
+            case _ ⇒ ingrs(rowIndex)._2
+          }
+        case _ ⇒ ""
+      }
+    override def setValueAt(aValue: scala.Any, rowIndex: Int, columnIndex: Int): Unit = {
+      // TODO
+    }
+  }
+
   val ingredients = {
-    val t = new JTable(Array(Array[AnyRef]("Cow butter", "13.4")), Array[AnyRef]("Ingredient", "Grams"))
-    t.getColumnModel.getColumn(1).setCellRenderer({
-      val r = new DefaultTableCellRenderer
+    val t = new JTable(ingredientsModel)
+    t.setCellSelectionEnabled(true)
+    t.getTableHeader.setReorderingAllowed(false)
+    t.getTableHeader.setResizingAllowed(false)
+    t.setSurrendersFocusOnKeystroke(true)
+    t.putClientProperty("terminateEditOnFocusLost", true)
+    t.putClientProperty("JTable.autoStartsEdit", false)
+
+    val _ = t.getInputMap(JComponent.WHEN_ANCESTOR_OF_FOCUSED_COMPONENT).
+      put(KeyStroke.getKeyStroke(KeyEvent.VK_ENTER, 0), "selectNextColumnCell")
+
+    val colProduct = t.getColumnModel.getColumn(0)
+    val colGrams = t.getColumnModel.getColumn(1)
+
+    colProduct.setCellEditor(new AutocompletionCellEditor(Products.names.keySet.toVector.sorted))
+
+    colGrams.setCellEditor(new CalculatorCellEditor(_ > 0.0))
+    colGrams.setCellRenderer({
+      val r = new CalculatorCellRenderer
       r.setHorizontalAlignment(SwingConstants.RIGHT)
       r
     })
-    t.setCellSelectionEnabled(true)
+
     t
   }
 
@@ -109,6 +157,7 @@ class ProductListPane(onProductsEdited: ⇒ Unit) extends JPanel {
       case Some(prod: CompoundProduct) ⇒
         compoundPane.setVisible(true)
         basicPane.setVisible(false)
+        ingredientsModel.fireTableDataChanged()
         stats.setData(prod.nutrition)
         convertButton.setText(ConvertToBasic)
         convertButton.setEnabled(true)
@@ -137,7 +186,7 @@ class ProductListPane(onProductsEdited: ⇒ Unit) extends JPanel {
     c.insets = new Insets(5, 0, 5, 0)
     c.fill = GridBagConstraints.BOTH
     c.gridwidth = 2
-    p.add(new JLabel("Nutritional values in 100 grams:"), c)
+    p.add(new JLabel("Nutritional value in 100 grams:"), c)
     c.gridwidth = 1
 
     nutritionalValues foreach {
