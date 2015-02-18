@@ -13,7 +13,7 @@ object DBDummy {
     val butterID, breadID, sandwichID = UUID.randomUUID
     d { DB.basicProducts += ((butterID, DateTime.now, "Cow butter", "748", 748, "0", 0, "83", 83, "0", 0, "0", 0)) }
     d { DB.basicProducts += ((breadID, DateTime.now, "White bread", "257", 257, "17/2", 8.5, "1.4", 1.4, "54.3", 54.3, "2.7", 2.7)) }
-    d { DB.compoundProducts += ((sandwichID, DateTime.now, "Sandwich", 1.0)) }
+    d { DB.compoundProducts += ((sandwichID, DateTime.now, "Sandwich", 1.0, "", "")) }
     d { DB.ingredients += ((sandwichID, breadID, "2*12.5", 25)) }
     d { DB.ingredients += ((sandwichID, butterID, "5", 5)) }
 

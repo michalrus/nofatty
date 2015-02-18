@@ -35,7 +35,8 @@ sealed trait Product {
 final case class BasicProduct(uuid: UUID, lastModified: DateTime, name: String, nutrition: NutritionalValue,
                               kcalExpr: String, proteinExpr: String, fatExpr: String, carbohydrateExpr: String, fiberExpr: String) extends Product
 
-final case class CompoundProduct(uuid: UUID, lastModified: DateTime, name: String, massReduction: Double, ingredients: Map[UUID, (Double, String)]) extends Product {
+final case class CompoundProduct(uuid: UUID, lastModified: DateTime, name: String, massReduction: Double,
+                                 massPreExpr: String, massPostExpr: String, ingredients: Map[UUID, (Double, String)]) extends Product {
   lazy val nutrition: NutritionalValue = {
     val xs = ingredients flatMap { case (id, (grams, gramsExpr)) ⇒ Products find id map (p ⇒ (p.nutrition, grams)) }
     if (xs.isEmpty) NutritionalValue.Zero
@@ -52,9 +53,9 @@ object Products {
           BasicProduct(uuid, lastMod, name, NutritionalValue(kcal, prot, fat, carb, fib), kcalE, protE, fatE, carbE, fibE)
       }
       val compounds: Seq[Product] = DB.compoundProducts.run map {
-        case (uuid, lastMod, name, massRed) ⇒
+        case (uuid, lastMod, name, massRed, massPreE, massPostE) ⇒
           val ings = DB.ingredients.filter(_.compoundProductID === uuid).run map { case (_, subprod, gramsE, grams) ⇒ (subprod, (grams, gramsE)) }
-          CompoundProduct(uuid, lastMod, name, massRed, ings.toMap)
+          CompoundProduct(uuid, lastMod, name, massRed, massPreE, massPostE, ings.toMap)
       }
       (basics ++ compounds).map(p ⇒ (p.uuid, p)).toMap
     }
@@ -76,7 +77,7 @@ object Products {
               p.carbohydrateExpr, p.nutrition.carbohydrate, p.fiberExpr, p.nutrition.fiber))
           case p: CompoundProduct ⇒
             discard { DB.ingredients.filter(_.compoundProductID === p.uuid).delete }
-            discard { DB.compoundProducts += ((p.uuid, p.lastModified, p.name, p.massReduction)) }
+            discard { DB.compoundProducts += ((p.uuid, p.lastModified, p.name, p.massReduction, p.massPreExpr, p.massPostExpr)) }
             discard { DB.ingredients ++= p.ingredients map { case (uuid, (grams, gramsExpr)) ⇒ (p.uuid, uuid, gramsExpr, grams) } }
         }
       }

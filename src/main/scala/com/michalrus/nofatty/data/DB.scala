@@ -75,12 +75,14 @@ object DB {
     def basicProduct = foreignKey("basic_product_fk", basicProductID, basicProducts)(_.uuid)
   }
 
-  final class CompoundProducts(tag: Tag) extends Table[(UUID, DateTime, String, Double)](tag, "compound_products") {
+  final class CompoundProducts(tag: Tag) extends Table[(UUID, DateTime, String, Double, String, String)](tag, "compound_products") {
     def uuid = column[UUID]("uuid", O.PrimaryKey)
     def lastModified = column[DateTime]("lastModified")
     def name = column[String]("name")
     def massReduction = column[Double]("mass_reduction")
-    override def * = (uuid, lastModified, name, massReduction)
+    def massPreExpr = column[String]("mass_pre_expr")
+    def massPostExpr = column[String]("mass_post_expr")
+    override def * = (uuid, lastModified, name, massReduction, massPreExpr, massPostExpr)
   }
 
   final class Days(tag: Tag) extends Table[(LocalDate, DateTime, DateTimeZone, String, Option[Double])](tag, "days") {

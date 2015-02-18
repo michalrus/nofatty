@@ -53,7 +53,7 @@ class ProductListPane(onProductsEdited: ⇒ Unit) extends JPanel {
 
       (value, input) match {
         case (Some(OBasic), Some(name))    ⇒ commit(name, BasicProduct(UUID.randomUUID(), DateTime.now, name, NutritionalValue.Zero, "", "", "", "", ""))
-        case (Some(OCompound), Some(name)) ⇒ commit(name, CompoundProduct(UUID.randomUUID(), DateTime.now, name, 1.0, Map.empty))
+        case (Some(OCompound), Some(name)) ⇒ commit(name, CompoundProduct(UUID.randomUUID(), DateTime.now, name, 1.0, "", "", Map.empty))
         case _                             ⇒
       }
     }
