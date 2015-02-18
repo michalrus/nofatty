@@ -1,35 +1,51 @@
 package com.michalrus.nofatty.data
 
+import java.io.File
 import java.util.UUID
 
+import com.github.tototoshi.csv.CSVReader
 import scala.slick.driver.SQLiteDriver.simple._
-import org.joda.time.{ LocalTime, DateTimeZone, LocalDate, DateTime }
-
-import DB.{ discard ⇒ d }
+import com.michalrus.nofatty.data.DB.{ discard ⇒ d }
+import org.joda.time.{ DateTimeZone, DateTime, LocalDate, LocalTime }
 
 object DBDummy {
 
-  DB.db withTransaction { implicit session ⇒
-    val butterID, breadID, sandwichID = UUID.randomUUID
-    d { DB.basicProducts += ((butterID, DateTime.now, "Cow butter", "748", 748, "0", 0, "83", 83, "0", 0, "0", 0)) }
-    d { DB.basicProducts += ((breadID, DateTime.now, "White bread", "257", 257, "17/2", 8.5, "1.4", 1.4, "54.3", 54.3, "2.7", 2.7)) }
-    d { DB.compoundProducts += ((sandwichID, DateTime.now, "Sandwich", 1.0, "", "")) }
-    d { DB.ingredients += ((sandwichID, breadID, "2*12.5", 25)) }
-    d { DB.ingredients += ((sandwichID, butterID, "5", 5)) }
+  def csv(path: String): List[List[String]] = {
+    val reader = CSVReader.open(new File(path))
+    val r = reader.all()
+    reader.close()
+    r
+  }
 
-    val today = LocalDate.now
-    val yesterday = today minusDays 1
-    val tz = DateTimeZone.getDefault
-    d { DB.days += ((yesterday, DateTime.now, tz, "56.5-1.1", Some(55.4))) }
-    d { DB.eatenProducts += ((yesterday, new LocalTime(9, 22), breadID, "23+8", 31.0)) }
-    d { DB.eatenProducts += ((yesterday, new LocalTime(9, 22), breadID, "22", 22.0)) }
-    d { DB.eatenProducts += ((yesterday, new LocalTime(9, 22), butterID, "5+7+5", 17.0)) }
-    d { DB.eatenProducts += ((yesterday, new LocalTime(17, 3), breadID, "30+34", 64.0)) }
-    d { DB.eatenProducts += ((yesterday, new LocalTime(18, 15), butterID, "11/2", 5.5)) }
-    d { DB.days += ((today, DateTime.now, tz, "56.8-2", Some(54.8))) }
-    d { DB.eatenProducts += ((today, new LocalTime(11, 15), sandwichID, "70/2", 35)) }
-    d { DB.eatenProducts += ((today, new LocalTime(11, 15), butterID, "5", 5)) }
-    d { DB.eatenProducts += ((today, new LocalTime(16, 30), sandwichID, "70/2", 35)) }
+  val prod = csv("/home/m/prod.csv") drop 1 map {
+    case List(id, name, kcal, prot, fat, carb, fib) ⇒
+      (id.toInt, name, NutritionalValue(kcal.toDouble, prot.toDouble, fat.toDouble, carb.toDouble, fib.toDouble))
+  }
+
+  val prodUUIDs = prod.map { case (id, _, _) ⇒ id → UUID.randomUUID }.toMap
+
+  val eaten = csv("/home/m/eaten.csv") drop 1 map {
+    case List(date, time, id, grams) ⇒
+      (LocalDate.parse(date), LocalTime.parse(time), id.toInt, grams.toDouble)
+  }
+
+  DB.db withTransaction { implicit session ⇒
+    d {
+      DB.basicProducts ++= (prod map {
+        case (id, name, nv) ⇒
+          (prodUUIDs(id), DateTime.now, name, nv.kcal.toString, nv.kcal, nv.protein.toString,
+            nv.protein, nv.fat.toString, nv.fat, nv.carbohydrate.toString, nv.carbohydrate, nv.fiber.toString, nv.fiber)
+      })
+    }
+
+    d { DB.days ++= (eaten.map(_._1).distinct map ((_, DateTime.now, DateTimeZone.getDefault, "", None))) }
+
+    d {
+      DB.eatenProducts ++= (eaten map {
+        case (date, time, id, grams) ⇒
+          (date, time, prodUUIDs(id), grams.toString, grams)
+      })
+    }
   }
 
 }
