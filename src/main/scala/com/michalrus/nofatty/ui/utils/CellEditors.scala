@@ -1,7 +1,9 @@
 package com.michalrus.nofatty.ui.utils
 
 import java.awt.Component
-import javax.swing.{ JTable, BorderFactory, JTextField, AbstractCellEditor }
+import java.awt.event.MouseEvent
+import java.util.EventObject
+import javax.swing._
 import javax.swing.table.{ DefaultTableCellRenderer, TableCellEditor }
 
 import com.michalrus.nofatty.Calculator
@@ -31,6 +33,12 @@ sealed abstract class WeirdTextFieldCellEditor extends AbstractCellEditor with T
       true
     }
     else false
+
+  override def isCellEditable(e: EventObject): Boolean =
+    e match {
+      case e: MouseEvent ⇒ e.getClickCount >= 2
+      case _             ⇒ true
+    }
 }
 
 final class VerifyingCellEditor(verify: String ⇒ Option[String]) extends WeirdTextFieldCellEditor { self ⇒
