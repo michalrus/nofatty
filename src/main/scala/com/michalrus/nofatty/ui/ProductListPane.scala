@@ -315,12 +315,16 @@ class ProductListPane(onProductsEdited: ⇒ Unit) extends JPanel {
     c.fill = GridBagConstraints.HORIZONTAL
     add(stats, c)
 
+    val editorHeight = 250
+
     c.gridy += 1
-    basicPane.setPreferredSize(new Dimension(0, 250))
+    basicPane.setPreferredSize(new Dimension(0, editorHeight))
+    basicPane.setMinimumSize(new Dimension(0, editorHeight))
     add(basicPane, c)
 
     c.gridy += 1
-    compoundPane.setPreferredSize(new Dimension(0, 250))
+    compoundPane.setPreferredSize(new Dimension(0, editorHeight))
+    compoundPane.setMinimumSize(new Dimension(0, editorHeight))
     add(compoundPane, c)
 
     c.gridy += 1
