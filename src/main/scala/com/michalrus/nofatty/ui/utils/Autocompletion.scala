@@ -98,7 +98,7 @@ trait Autocompletion extends TextFieldUsableAsCellEditor { self: JTextComponent 
         val p2 = self.getLocationOnScreen
         lpane.add(popup, JLayeredPane.POPUP_LAYER, 0)
         popup.setLocation(p2.x - p1.x + 0, p2.y - p1.y + self.getHeight)
-        list.clearSelection()
+        list.setSelectedIndex(0)
         popup.setVisible(true)
       }
     }
