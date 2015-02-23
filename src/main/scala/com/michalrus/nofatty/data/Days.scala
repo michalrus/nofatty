@@ -11,6 +11,11 @@ import DB.discard
 final case class EatenProduct(time: LocalTime, product: UUID, gramsExpr: String, grams: Double)
 final case class Day(date: LocalDate, lastModified: DateTime, zone: DateTimeZone, weightExpr: String, weight: Option[Double], eatenProducts: Seq[EatenProduct])
 
+object EatenProduct {
+  def sum(xs: Seq[EatenProduct]): NutritionalValue =
+    NutritionalValue.sum(xs flatMap (ep ⇒ Products find ep.product map (p ⇒ p.nutrition * (ep.grams / NutritionalValue.PerGrams))))
+}
+
 object Days {
 
   def find(date: LocalDate): Option[Day] = {

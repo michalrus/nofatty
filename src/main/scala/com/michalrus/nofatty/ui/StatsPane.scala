@@ -12,14 +12,12 @@ class StatsPane extends JPanel {
     border.setTitle(t)
   }
 
-  def setData(n: NutritionalValue): Unit = {
+  def setData(n: NutritionalValue, mass: Double): Unit = {
     lKcal setText intFormatter.format(n.kcal)
     lProtein setText f"${n.protein}%.1f g"
     lFat setText f"${n.fat}%.1f g"
     lCarbohydrate setText f"${n.carbohydrate}%.1f g"
     lFiber setText f"${n.fiber}%.1f g"
-
-    val mass = n.protein + n.fat + n.carbohydrate + n.fiber
 
     if (mass != 0.0) {
       pProtein setText f"${100.0 * n.protein / mass}%.1f%%"
@@ -66,7 +64,7 @@ class StatsPane extends JPanel {
     Vector(title(new JLabel("%M")), pProtein, pFat, pCarbohydrate, pFiber) foreach add
     Vector(title(new JLabel("÷M")), rProtein, rFat, rCarbohydrate, rFiber) foreach add
 
-    setData(NutritionalValue(0, 0, 0, 0, 0))
+    setData(NutritionalValue.Zero, 0.0)
   }
 
 }

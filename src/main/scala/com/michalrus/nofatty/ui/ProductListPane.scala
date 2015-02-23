@@ -119,7 +119,7 @@ class ProductListPane(onProductsEdited: ⇒ Unit) extends JPanel {
   })
 
   val stats = new StatsPane
-  stats.setTitle("100 grams of the product")
+  stats.setTitle(f"${NutritionalValue.PerGrams}%.0f grams of the product")
 
   val convertButton = new JButton
 
@@ -212,21 +212,21 @@ class ProductListPane(onProductsEdited: ⇒ Unit) extends JPanel {
             field.reset(reader(prod))
             field.setEnabled(true)
         }
-        stats.setData(prod.nutrition)
+        stats.setData(prod.nutrition, NutritionalValue.PerGrams)
         convertButton.setText(ConvertToCompound)
         convertButton.setEnabled(true)
       case Some(prod: CompoundProduct) ⇒
         compoundPane.setVisible(true)
         basicPane.setVisible(false)
         ingredientsModel.fireTableDataChanged()
-        stats.setData(prod.nutrition)
+        stats.setData(prod.nutrition, NutritionalValue.PerGrams)
         convertButton.setText(ConvertToBasic)
         convertButton.setEnabled(true)
       case _ ⇒
         compoundPane.setVisible(false)
         basicPane.setVisible(true)
         nutritionalValues map (_._2) foreach { f ⇒ f.reset(""); f.setEnabled(false) }
-        stats.setData(NutritionalValue.Zero)
+        stats.setData(NutritionalValue.Zero, 0.0)
         convertButton.setText(ConvertToCompound)
         convertButton.setEnabled(false)
     }
@@ -247,7 +247,7 @@ class ProductListPane(onProductsEdited: ⇒ Unit) extends JPanel {
     c.insets = new Insets(5, 0, 5, 0)
     c.fill = GridBagConstraints.BOTH
     c.gridwidth = 2
-    p.add(new JLabel("Nutritional value in 100 grams:"), c)
+    p.add(new JLabel(f"Nutritional value in ${NutritionalValue.PerGrams}%.0f grams:"), c)
     c.gridwidth = 1
 
     nutritionalValues foreach {

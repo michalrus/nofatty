@@ -17,12 +17,15 @@ final case class NutritionalValue(kcal: Double, protein: Double, fat: Double, ca
 
 object NutritionalValue {
   val Zero = NutritionalValue(0.0, 0.0, 0.0, 0.0, 0.0)
+  val PerGrams = 100.0
 
   def weightedMean(xs: Seq[(NutritionalValue, Double)]): NutritionalValue = {
     val weightSum = xs.map(_._2).sum
-    val nutrSum = xs.map(x ⇒ x._1 * x._2).foldLeft(Zero)(_ + _)
+    val nutrSum = sum(xs map (x ⇒ x._1 * x._2))
     nutrSum * (1.0 / weightSum)
   }
+
+  def sum(xs: Seq[NutritionalValue]): NutritionalValue = xs.foldLeft(Zero)(_ + _)
 }
 
 sealed trait Product {

@@ -21,11 +21,6 @@ class InputPane extends JPanel {
     onDateChanged(date.date)
   }
 
-  def sumEatenProducts(xs: Seq[EatenProduct]): NutritionalValue = {
-    val ys = xs flatMap (ep ⇒ Products find ep.product map (p ⇒ p.nutrition * (ep.grams / 100.0)))
-    ys.foldLeft(NutritionalValue.Zero)(_ + _)
-  }
-
   private[this] val previousDate = new AtomicReference[LocalDate](LocalDate.now)
   private[this] def onDateChanged(d: LocalDate): Unit = {
     day.set(Days find d)
@@ -35,7 +30,8 @@ class InputPane extends JPanel {
     }
     newRecord.set((lastRecord.get._1, "", ""))
     model.fireTableDataChanged()
-    stats.setData(sumEatenProducts(day.get.toSeq flatMap (_.eatenProducts)))
+    val eps = day.get.toSeq flatMap (_.eatenProducts)
+    stats.setData(EatenProduct.sum(eps), eps.map(_.grams).sum)
     weight.reset(day.get map (_.weightExpr) getOrElse "")
   }
 
@@ -171,7 +167,7 @@ class InputPane extends JPanel {
       override def valueChanged(e: ListSelectionEvent): Unit = {
         val eps = day.get.toSeq flatMap (_.eatenProducts)
         val selected = eps.zipWithIndex filter { case (_, i) ⇒ t.isRowSelected(i) } map { case (ep, _) ⇒ ep }
-        selectionStats.setData(sumEatenProducts(selected))
+        selectionStats.setData(EatenProduct.sum(selected), selected.map(_.grams).sum)
       }
     })
 
