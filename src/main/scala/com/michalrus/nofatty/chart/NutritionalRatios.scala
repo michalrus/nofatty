@@ -1,15 +1,12 @@
 package com.michalrus.nofatty.chart
 
-import java.text.SimpleDateFormat
-
 import com.michalrus.nofatty.data.EatenProduct
-import org.jfree.chart.axis.DateAxis
 import org.jfree.chart.renderer.xy.{ StackedXYBarRenderer, StandardXYBarPainter }
 import org.jfree.chart.{ ChartFactory, JFreeChart }
 import org.jfree.data.time.TimeTableXYDataset
 
 object NutritionalRatios extends Chart {
-  import Chart._
+  import com.michalrus.nofatty.chart.Chart._
 
   override val title: String = "Nutritional ratios"
 
@@ -17,11 +14,7 @@ object NutritionalRatios extends Chart {
 
   override val chart: JFreeChart = {
     val c = ChartFactory.createXYBarChart("", "", true, "Stacked mass-to-protein ratios", dataset)
-    c.getXYPlot.setDomainAxis({
-      val a = new DateAxis
-      a.setDateFormatOverride(new SimpleDateFormat("d-MMM"))
-      a
-    })
+    setTimeDomain(c.getXYPlot)
     c.getXYPlot.setRenderer({
       val r = new StackedXYBarRenderer(0.05)
       r.setBarPainter(new StandardXYBarPainter)
@@ -31,7 +24,7 @@ object NutritionalRatios extends Chart {
     c
   }
 
-  override def refresh(): Unit = {
+  override def refresh(): Unit =
     lastDays foreach {
       case (date, Some(day)) if day.eatenProducts.nonEmpty ⇒
         val nv = EatenProduct.sum(day.eatenProducts)
@@ -43,7 +36,6 @@ object NutritionalRatios extends Chart {
       case (date, _) ⇒
         Seq(Protein, Fat, Carbohydrate, Fiber) foreach (n ⇒ dataset.add(date, 0.0, n))
     }
-  }
 
   refresh()
 }

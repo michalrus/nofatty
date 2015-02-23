@@ -32,7 +32,7 @@ object Ui {
         import com.michalrus.nofatty.chart._
         val r = new JTabbedPane()
         def add(ch: Chart): Unit = r.addTab(ch.title, new ChartPanel(ch.chart))
-        add(NutritionalRatios)
+        add(EnergyIntake)
         add(NutritionalRatios)
         r.setSelectedIndex(select)
         r
