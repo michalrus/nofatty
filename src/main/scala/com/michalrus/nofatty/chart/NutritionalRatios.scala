@@ -2,15 +2,14 @@ package com.michalrus.nofatty.chart
 
 import java.text.SimpleDateFormat
 
-import com.michalrus.nofatty.data.{ Days, EatenProduct }
+import com.michalrus.nofatty.data.EatenProduct
 import org.jfree.chart.axis.DateAxis
 import org.jfree.chart.renderer.xy.{ StackedXYBarRenderer, StandardXYBarPainter }
 import org.jfree.chart.{ ChartFactory, JFreeChart }
 import org.jfree.data.time.TimeTableXYDataset
-import org.joda.time.LocalDate
 
 object NutritionalRatios extends Chart {
-  import com.michalrus.nofatty.chart.Chart._
+  import Chart._
 
   override val title: String = "Nutritional ratios"
 
@@ -29,15 +28,11 @@ object NutritionalRatios extends Chart {
       r.setShadowVisible(false)
       r
     })
-
     c
   }
 
   override def refresh(): Unit = {
-    val today = LocalDate.now
-    val days = (0 until Chart.LastDays).toVector.reverse map today.minusDays map (d ⇒ (d, Days.find(d))) dropWhile (_._2.isEmpty)
-
-    days foreach {
+    lastDays foreach {
       case (date, Some(day)) if day.eatenProducts.nonEmpty ⇒
         val nv = EatenProduct.sum(day.eatenProducts)
         val d = nv.protein
@@ -51,5 +46,4 @@ object NutritionalRatios extends Chart {
   }
 
   refresh()
-
 }
