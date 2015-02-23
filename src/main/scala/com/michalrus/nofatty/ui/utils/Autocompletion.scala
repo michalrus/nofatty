@@ -32,7 +32,7 @@ trait Autocompletion extends TextFieldUsableAsCellEditor { self: JTextComponent 
       // FIXME: so inefficient :3
       val predicate: String ⇒ Boolean = _.toLowerCase contains self.getText.toLowerCase
       override def getSize: Int = completions count predicate
-      override def getElementAt(index: Int): String = (completions filter predicate)(index)
+      override def getElementAt(index: Int): String = (completions filter predicate).lift(index).getOrElse("")
     }
     lazy val list = {
       val l = new JList(model)
