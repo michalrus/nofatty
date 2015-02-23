@@ -3,6 +3,7 @@ package com.michalrus.nofatty.ui
 import java.awt.{ BorderLayout, Dimension }
 import javax.swing._
 import com.michalrus.nofatty.ui.utils._
+import org.jfree.chart.ChartPanel
 
 object Ui {
 
@@ -28,10 +29,11 @@ object Ui {
       }))
 
       def rtv(select: Int): JTabbedPane = {
+        import com.michalrus.nofatty.chart._
         val r = new JTabbedPane()
-        r.addTab("Chart A", new ChartPane)
-        r.addTab("Chart B", new ChartPane)
-        r.addTab("Chart C", new ChartPane)
+        def add(ch: Chart): Unit = r.addTab(ch.title, new ChartPanel(ch.chart))
+        add(NutritionalRatios)
+        add(NutritionalRatios)
         r.setSelectedIndex(select)
         r
       }
