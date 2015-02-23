@@ -1,7 +1,7 @@
 package com.michalrus.nofatty.ui
 
 import java.awt._
-import java.awt.event.{ FocusEvent, FocusListener, KeyEvent }
+import java.awt.event.{ FocusEvent, FocusListener }
 import java.util.concurrent.atomic.AtomicReference
 import javax.swing._
 import javax.swing.event.{ ListSelectionEvent, ListSelectionListener }
@@ -10,8 +10,8 @@ import javax.swing.table.AbstractTableModel
 import com.michalrus.nofatty.Calculator
 import com.michalrus.nofatty.data._
 import com.michalrus.nofatty.ui.utils._
-import org.joda.time.{ DateTimeZone, DateTime, LocalDate }
 import org.joda.time.format.DateTimeFormat
+import org.joda.time.{ DateTime, DateTimeZone, LocalDate }
 
 import scala.util.Try
 
@@ -134,17 +134,10 @@ class InputPane extends JPanel {
     }
   }
 
-  val table: JTable = {
-    val t = new JTable(model)
-    t.setCellSelectionEnabled(true)
+  val table: BetterTable = {
+    val t = new BetterTable(model, (row, _) ⇒ row >= model.getRowCount - 1)
     t.getTableHeader.setReorderingAllowed(false)
     t.getTableHeader.setResizingAllowed(false)
-    t.setSurrendersFocusOnKeystroke(true)
-    t.putClientProperty("terminateEditOnFocusLost", true)
-    t.putClientProperty("JTable.autoStartsEdit", false)
-
-    val _ = t.getInputMap(JComponent.WHEN_ANCESTOR_OF_FOCUSED_COMPONENT).
-      put(KeyStroke.getKeyStroke(KeyEvent.VK_ENTER, 0), "selectNextColumnCell")
 
     val colTime = t.getColumnModel.getColumn(0)
     val colProduct = t.getColumnModel.getColumn(1)
