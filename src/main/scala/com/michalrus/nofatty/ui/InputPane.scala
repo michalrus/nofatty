@@ -26,16 +26,21 @@ class InputPane extends JPanel {
     ys.foldLeft(NutritionalValue.Zero)(_ + _)
   }
 
+  private[this] val previousDate = new AtomicReference[LocalDate](LocalDate.now)
   private[this] def onDateChanged(d: LocalDate): Unit = {
     day.set(Days find d)
-    newRecord.set(("", "", ""))
+    if (d != previousDate.get) {
+      lastRecord.set(("", "", ""))
+      previousDate.set(d)
+    }
+    newRecord.set((lastRecord.get._1, "", ""))
     model.fireTableDataChanged()
     stats.setData(sumEatenProducts(day.get.toSeq flatMap (_.eatenProducts)))
     weight.reset(day.get map (_.weightExpr) getOrElse "")
   }
 
   val day = new AtomicReference[Option[Day]](None)
-  val newRecord = new AtomicReference[(String, String, String)](("", "", ""))
+  val newRecord, lastRecord = new AtomicReference[(String, String, String)](("", "", ""))
 
   val date = new LocalDateInput(LocalDate.now, onDateChanged)
   val stats = new StatsPane
@@ -107,6 +112,7 @@ class InputPane extends JPanel {
         )
         newRecord.set(newNewRecord)
         if (newNewRecord._1.nonEmpty && newNewRecord._2.nonEmpty && newNewRecord._3.nonEmpty) {
+          lastRecord.set(newRecord.get)
           val ep = EatenProduct(
             formatter.parseLocalTime(newNewRecord._1),
             Products.names.getOrElse(newNewRecord._2, throw new Exception("shouldn’t ever be thrown, really")),
