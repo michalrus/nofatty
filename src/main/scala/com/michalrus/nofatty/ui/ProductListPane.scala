@@ -152,17 +152,10 @@ class ProductListPane(onProductsEdited: ⇒ Unit) extends JPanel {
     }
   }
 
-  val ingredients = {
-    val t = new JTable(ingredientsModel)
-    t.setCellSelectionEnabled(true)
+  val ingredients: BetterTable = {
+    val t = new BetterTable(ingredientsModel, (row, _) ⇒ row >= ingredientsModel.getRowCount - 1)
     t.getTableHeader.setReorderingAllowed(false)
     t.getTableHeader.setResizingAllowed(false)
-    t.setSurrendersFocusOnKeystroke(true)
-    t.putClientProperty("terminateEditOnFocusLost", true)
-    t.putClientProperty("JTable.autoStartsEdit", false)
-
-    val _ = t.getInputMap(JComponent.WHEN_ANCESTOR_OF_FOCUSED_COMPONENT).
-      put(KeyStroke.getKeyStroke(KeyEvent.VK_ENTER, 0), "selectNextColumnCell")
 
     val colProduct = t.getColumnModel.getColumn(0)
     val colGrams = t.getColumnModel.getColumn(1)
