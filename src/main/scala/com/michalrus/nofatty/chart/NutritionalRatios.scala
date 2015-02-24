@@ -1,26 +1,41 @@
 package com.michalrus.nofatty.chart
 
 import com.michalrus.nofatty.data.EatenProduct
+import org.jfree.chart.axis.NumberAxis
+import org.jfree.chart.plot.XYPlot
 import org.jfree.chart.renderer.xy.{ StackedXYBarRenderer, StandardXYBarPainter }
-import org.jfree.chart.{ ChartFactory, JFreeChart }
+import org.jfree.chart.{ JFreeChart, StandardChartTheme }
 import org.jfree.data.time.TimeTableXYDataset
 
 object NutritionalRatios extends Chart {
   import com.michalrus.nofatty.chart.Chart._
 
-  override val title: String = "Nutritional ratios"
+  override val title: String = "Stacked ratios"
 
   private[this] val dataset = new TimeTableXYDataset()
 
   override val chart: JFreeChart = {
-    val c = ChartFactory.createXYBarChart("", "", true, "Stacked mass-to-protein ratios", dataset)
-    setTimeDomain(c.getXYPlot)
-    c.getXYPlot.setRenderer({
+    val plot = new XYPlot
+    val c = new JFreeChart(plot)
+    new StandardChartTheme("JFree").apply(c)
+
+    setTimeDomain(plot)
+
+    plot.setDataset(0, dataset)
+    plot.setRenderer(0, {
       val r = new StackedXYBarRenderer(0.05)
       r.setBarPainter(new StandardXYBarPainter)
+      r.setSeriesPaint(0, Red)
+      r.setSeriesPaint(1, Blue)
+      r.setSeriesPaint(2, Green)
+      r.setSeriesPaint(3, Yellow)
       r.setShadowVisible(false)
+      setToolTip(r)
       r
     })
+    plot.setRangeAxis(0, new NumberAxis("Stacked mass-to-protein ratios"))
+    plot.mapDatasetToRangeAxis(0, 0)
+
     c
   }
 
@@ -33,8 +48,7 @@ object NutritionalRatios extends Chart {
         dataset.add(date, nv.fat / d, Fat)
         dataset.add(date, nv.carbohydrate / d, Carbohydrate)
         dataset.add(date, nv.fiber / d, Fiber)
-      case (date, _) ⇒
-        Seq(Protein, Fat, Carbohydrate, Fiber) foreach (n ⇒ dataset.add(date, 0.0, n))
+      case _ ⇒
     }
 
   refresh()

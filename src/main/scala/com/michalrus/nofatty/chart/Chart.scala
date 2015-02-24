@@ -1,5 +1,7 @@
 package com.michalrus.nofatty.chart
 
+import java.awt.Color
+import java.awt.geom.Ellipse2D
 import java.text.{ NumberFormat, SimpleDateFormat }
 
 import com.michalrus.nofatty.data.{ Day, Days }
@@ -20,6 +22,11 @@ object Chart {
   val Carbohydrate = "Carbohydrate"
   val Fiber = "Fiber"
 
+  val Red = new Color(0xFF, 0, 0, 0x7F)
+  val Blue = new Color(0, 0, 0xFF, 0x7F)
+  val Green = new Color(0, 0xFF, 0, 0x7F)
+  val Yellow = new Color(0xFF, 0xFF, 0, 0x7F)
+
   val LastDays = 100
   def lastDays: Vector[(LocalDate, Option[Day])] = {
     val today = LocalDate.now
@@ -36,6 +43,8 @@ object Chart {
   def setToolTip(r: AbstractXYItemRenderer): Unit =
     r.setBaseToolTipGenerator(new StandardXYToolTipGenerator(StandardXYToolTipGenerator.DEFAULT_TOOL_TIP_FORMAT,
       new SimpleDateFormat("yyyy/MM/dd"), NumberFormat.getInstance))
+
+  def ellipse(diameter: Double) = new Ellipse2D.Double(-diameter / 2.0, -diameter / 2.0, diameter, diameter)
 }
 
 trait Chart {

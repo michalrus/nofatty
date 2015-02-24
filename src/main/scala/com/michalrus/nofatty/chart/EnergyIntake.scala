@@ -1,7 +1,6 @@
 package com.michalrus.nofatty.chart
 
-import java.awt.geom.Ellipse2D
-import java.awt.{ BasicStroke, Color }
+import java.awt.BasicStroke
 
 import com.michalrus.nofatty.data.EatenProduct
 import org.jfree.chart.axis.NumberAxis
@@ -27,7 +26,7 @@ object EnergyIntake extends Chart {
     plot.setDataset(0, energyDataset)
     plot.setRenderer(0, {
       val r = new XYBarRenderer(0.05)
-      r.setSeriesPaint(0, Color.ORANGE.darker.darker)
+      r.setSeriesPaint(0, Blue)
       r.setBarPainter(new StandardXYBarPainter)
       r.setShadowVisible(false)
       setToolTip(r)
@@ -39,9 +38,9 @@ object EnergyIntake extends Chart {
     plot.setDataset(1, weightDataset)
     plot.setRenderer(1, {
       val r = new XYSplineRenderer
-      r.setSeriesPaint(0, Color.RED)
+      r.setSeriesPaint(0, Red)
       r.setSeriesStroke(0, new BasicStroke(1))
-      r.setSeriesShape(0, new Ellipse2D.Double(-1.5, -1.5, 3.0, 3.0))
+      r.setSeriesShape(0, ellipse(2))
       setToolTip(r)
       r
     })
@@ -59,8 +58,7 @@ object EnergyIntake extends Chart {
         val nv = EatenProduct.sum(day.eatenProducts)
         energyDataset.add(date, nv.kcal, Energy)
         day.weight foreach (w ⇒ weightDataset.add(date, w, Weight))
-      case (date, _) ⇒
-        energyDataset.add(date, 0.0, Energy)
+      case _ ⇒
     }
 
   refresh()
