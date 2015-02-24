@@ -8,12 +8,12 @@ import org.jfree.chart.{ JFreeChart, StandardChartTheme }
 import org.jfree.data.time.TimeTableXYDataset
 import org.joda.time.LocalDate
 
-object NutritionalRatios extends Chart {
+object StackedRatios extends Chart {
   import com.michalrus.nofatty.chart.Chart._
 
   override val title: String = "Stacked ratios"
 
-  private[this] val dataset = new TimeTableXYDataset()
+  private[this] val dataset = new TimeTableXYDataset
 
   override val chart: JFreeChart = {
     val plot = new XYPlot

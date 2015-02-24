@@ -4,7 +4,7 @@ import java.awt.Color
 import java.awt.geom.Ellipse2D
 import java.text.{ NumberFormat, SimpleDateFormat }
 
-import com.michalrus.nofatty.data.{ Day, Days }
+import com.michalrus.nofatty.data.Day
 import org.jfree.chart.JFreeChart
 import org.jfree.chart.axis.DateAxis
 import org.jfree.chart.labels.StandardXYToolTipGenerator
@@ -24,7 +24,7 @@ object Chart {
 
   val Red = new Color(0xFF, 0, 0, 0x7F)
   val Blue = new Color(0, 0, 0xFF, 0x7F)
-  val Green = new Color(0, 0xFF, 0, 0x7F)
+  val Green = new Color(0, 0x7F, 0, 0x7F)
   val Yellow = new Color(0xFF, 0xFF, 0, 0x7F)
 
   def setTimeDomain(p: XYPlot): Unit =

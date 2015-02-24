@@ -28,7 +28,7 @@ object Ui {
 
       val charts = {
         import com.michalrus.nofatty.chart._
-        val cs = List(EnergyIntake, NutritionalRatios)
+        val cs = List(EnergyIntake, StackedRatios, FatCarbohydrate)
         val days = chartDays(ChartDays)
         cs foreach (_.refresh(days))
         cs
