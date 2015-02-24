@@ -2,12 +2,13 @@ package com.michalrus.nofatty.chart
 
 import java.awt.BasicStroke
 
-import com.michalrus.nofatty.data.EatenProduct
+import com.michalrus.nofatty.data.{ Day, EatenProduct }
 import org.jfree.chart.axis.NumberAxis
 import org.jfree.chart.plot.{ DatasetRenderingOrder, XYPlot }
 import org.jfree.chart.renderer.xy.{ StandardXYBarPainter, XYBarRenderer, XYSplineRenderer }
 import org.jfree.chart.{ JFreeChart, StandardChartTheme }
 import org.jfree.data.time.TimeTableXYDataset
+import org.joda.time.LocalDate
 
 object EnergyIntake extends Chart {
   import com.michalrus.nofatty.chart.Chart._
@@ -52,14 +53,15 @@ object EnergyIntake extends Chart {
     c
   }
 
-  override def refresh(): Unit =
-    lastDays foreach {
-      case (date, Some(day)) ⇒
-        val nv = EatenProduct.sum(day.eatenProducts)
-        energyDataset.add(date, nv.kcal, Energy)
-        day.weight foreach (w ⇒ weightDataset.add(date, w, Weight))
-      case _ ⇒
+  override def refresh(days: Seq[(LocalDate, Option[Day])]): Unit =
+    days foreach {
+      case (date, day) ⇒
+        energyDataset.remove(date, Energy)
+        weightDataset.remove(date, Weight)
+        day foreach { day ⇒
+          val nv = EatenProduct.sum(day.eatenProducts)
+          energyDataset.add(date, nv.kcal, Energy)
+          day.weight foreach (w ⇒ weightDataset.add(date, w, Weight))
+        }
     }
-
-  refresh()
 }

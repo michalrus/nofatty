@@ -1,11 +1,12 @@
 package com.michalrus.nofatty.chart
 
-import com.michalrus.nofatty.data.EatenProduct
+import com.michalrus.nofatty.data.{ Day, EatenProduct }
 import org.jfree.chart.axis.NumberAxis
 import org.jfree.chart.plot.XYPlot
 import org.jfree.chart.renderer.xy.{ StackedXYBarRenderer, StandardXYBarPainter }
 import org.jfree.chart.{ JFreeChart, StandardChartTheme }
 import org.jfree.data.time.TimeTableXYDataset
+import org.joda.time.LocalDate
 
 object NutritionalRatios extends Chart {
   import com.michalrus.nofatty.chart.Chart._
@@ -39,17 +40,18 @@ object NutritionalRatios extends Chart {
     c
   }
 
-  override def refresh(): Unit =
-    lastDays foreach {
-      case (date, Some(day)) if day.eatenProducts.nonEmpty ⇒
-        val nv = EatenProduct.sum(day.eatenProducts)
-        val d = nv.protein
-        dataset.add(date, nv.protein / d, Protein)
-        dataset.add(date, nv.fat / d, Fat)
-        dataset.add(date, nv.carbohydrate / d, Carbohydrate)
-        dataset.add(date, nv.fiber / d, Fiber)
-      case _ ⇒
+  override def refresh(days: Seq[(LocalDate, Option[Day])]): Unit = {
+    days foreach {
+      case (date, day) ⇒
+        Seq(Protein, Fat, Carbohydrate, Fiber) foreach (dataset.remove(date, _))
+        day filter (_.eatenProducts.nonEmpty) foreach { day ⇒
+          val nv = EatenProduct.sum(day.eatenProducts)
+          val d = nv.protein
+          dataset.add(date, nv.protein / d, Protein)
+          dataset.add(date, nv.fat / d, Fat)
+          dataset.add(date, nv.carbohydrate / d, Carbohydrate)
+          dataset.add(date, nv.fiber / d, Fiber)
+        }
     }
-
-  refresh()
+  }
 }

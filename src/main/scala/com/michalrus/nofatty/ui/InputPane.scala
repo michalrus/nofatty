@@ -15,7 +15,7 @@ import org.joda.time.{ DateTime, DateTimeZone, LocalDate }
 
 import scala.util.Try
 
-class InputPane extends JPanel {
+class InputPane(onDayEdited: LocalDate ⇒ Unit) extends JPanel {
 
   def refresh(): Unit = {
     onDateChanged(date.date)
@@ -54,9 +54,11 @@ class InputPane extends JPanel {
         case Some(d) if d.weightExpr != weight.originalInput ⇒
           Days.commit(d.copy(lastModified = DateTime.now, weight = correctedInput, weightExpr = weight.originalInput))
           onDateChanged(date.date)
+          onDayEdited(date.date)
         case None if weight.originalInput.nonEmpty ⇒
           Days.commit(Day(date.date, DateTime.now, DateTimeZone.getDefault, weight.originalInput, correctedInput, Seq.empty))
           onDateChanged(date.date)
+          onDayEdited(date.date)
         case _ ⇒
       }
     }
@@ -120,6 +122,7 @@ class InputPane extends JPanel {
             case None    ⇒ Days.commit(Day(date.date, DateTime.now, DateTimeZone.getDefault, "", None, Seq(ep)))
           }
           onDateChanged(date.date)
+          onDayEdited(date.date)
         }
       }
       else day.get foreach { day ⇒
@@ -132,6 +135,7 @@ class InputPane extends JPanel {
         val newEps = day.eatenProducts.updated(rowIndex, newEp)
         Days.commit(day.copy(lastModified = DateTime.now, eatenProducts = newEps))
         onDateChanged(day.date)
+        onDayEdited(date.date)
       }
     }
   }

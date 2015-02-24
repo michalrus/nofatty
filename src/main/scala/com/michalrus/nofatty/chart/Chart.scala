@@ -27,12 +27,6 @@ object Chart {
   val Green = new Color(0, 0xFF, 0, 0x7F)
   val Yellow = new Color(0xFF, 0xFF, 0, 0x7F)
 
-  val LastDays = 100
-  def lastDays: Vector[(LocalDate, Option[Day])] = {
-    val today = LocalDate.now
-    (0 until Chart.LastDays).toVector.reverse map today.minusDays map (d ⇒ (d, Days.find(d))) dropWhile (_._2.isEmpty)
-  }
-
   def setTimeDomain(p: XYPlot): Unit =
     p.setDomainAxis({
       val a = new DateAxis
@@ -51,7 +45,7 @@ trait Chart {
 
   val title: String
   val chart: JFreeChart
-  def refresh(): Unit
+  def refresh(days: Seq[(LocalDate, Option[Day])]): Unit
 
   import scala.language.implicitConversions
   implicit def localDateToDay(d: LocalDate): org.jfree.data.time.Day =

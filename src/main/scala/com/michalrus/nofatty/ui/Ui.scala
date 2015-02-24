@@ -2,10 +2,14 @@ package com.michalrus.nofatty.ui
 
 import java.awt.{ BorderLayout, Dimension }
 import javax.swing._
+import com.michalrus.nofatty.data.{ Days, Day }
 import com.michalrus.nofatty.ui.utils._
 import org.jfree.chart.ChartPanel
+import org.joda.time.LocalDate
 
 object Ui {
+
+  val ChartDays = 100
 
   def initialize(): Unit = {
     edt {
@@ -22,18 +26,25 @@ object Ui {
       val ltv = new JTabbedPane()
       f.add(ltv, BorderLayout.LINE_START)
 
-      val inputPane = new InputPane
+      val charts = {
+        import com.michalrus.nofatty.chart._
+        val cs = List(EnergyIntake, NutritionalRatios)
+        val days = chartDays(ChartDays)
+        cs foreach (_.refresh(days))
+        cs
+      }
+
+      val inputPane = new InputPane(date ⇒ charts foreach (_.refresh(Seq((date, Days.find(date))))))
       ltv.addTab("Daily input", inputPane)
       ltv.addTab("Products", new ProductListPane({
+        val days = chartDays(ChartDays)
+        charts foreach (_.refresh(days))
         inputPane.refresh()
       }))
 
       def rtv(select: Int): JTabbedPane = {
-        import com.michalrus.nofatty.chart._
         val r = new JTabbedPane()
-        def add(ch: Chart): Unit = r.addTab(ch.title, new ChartPanel(ch.chart))
-        add(EnergyIntake)
-        add(NutritionalRatios)
+        charts foreach (ch ⇒ r.addTab(ch.title, new ChartPanel(ch.chart)))
         r.setSelectedIndex(select)
         r
       }
@@ -47,6 +58,11 @@ object Ui {
       split.setDividerLocation(0.5)
       ltv.setPreferredSize(new Dimension(360, 0))
     }
+  }
+
+  def chartDays(n: Int): Vector[(LocalDate, Option[Day])] = {
+    val today = LocalDate.now
+    (0 until n).toVector.reverse map today.minusDays map (d ⇒ (d, Days.find(d))) dropWhile (_._2.isEmpty)
   }
 
 }
