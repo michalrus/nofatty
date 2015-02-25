@@ -1,11 +1,9 @@
 package com.michalrus.nofatty.chart
 
-import java.awt.BasicStroke
-
 import com.michalrus.nofatty.data.{ Day, EatenProduct }
 import org.jfree.chart.axis.NumberAxis
 import org.jfree.chart.plot.{ DatasetRenderingOrder, XYPlot }
-import org.jfree.chart.renderer.xy.{ StandardXYBarPainter, XYBarRenderer, XYSplineRenderer }
+import org.jfree.chart.renderer.xy.{ StandardXYBarPainter, XYBarRenderer, XYLineAndShapeRenderer }
 import org.jfree.chart.{ JFreeChart, StandardChartTheme }
 import org.jfree.data.time.TimeTableXYDataset
 import org.joda.time.LocalDate
@@ -38,14 +36,17 @@ object EnergyIntake extends Chart {
 
     plot.setDataset(1, weightDataset)
     plot.setRenderer(1, {
-      val r = new XYSplineRenderer
+      val r = new XYLineAndShapeRenderer(false, true)
       r.setSeriesPaint(0, Red)
-      r.setSeriesStroke(0, new BasicStroke(1))
-      r.setSeriesShape(0, ellipse(2))
+      r.setSeriesShape(0, ellipse(5))
       setToolTip(r)
       r
     })
-    plot.setRangeAxis(1, new NumberAxis(Weight))
+    plot.setRangeAxis(1, {
+      val a = new NumberAxis(Weight)
+      a.setAutoRangeIncludesZero(false)
+      a
+    })
     plot.mapDatasetToRangeAxis(1, 1)
 
     plot.setDatasetRenderingOrder(DatasetRenderingOrder.REVERSE)
