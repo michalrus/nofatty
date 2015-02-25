@@ -1,7 +1,7 @@
 package com.michalrus.nofatty.ui
 
 import java.awt._
-import java.awt.event.{ FocusEvent, FocusListener }
+import java.awt.event._
 import java.util.concurrent.atomic.AtomicReference
 import javax.swing._
 import javax.swing.event.{ ListSelectionEvent, ListSelectionListener }
@@ -173,6 +173,47 @@ class InputPane(onDayEdited: LocalDate ⇒ Unit) extends JPanel {
         val selected = eps.zipWithIndex filter { case (_, i) ⇒ t.isRowSelected(i) } map { case (ep, _) ⇒ ep }
         selectionStats.setData(EatenProduct.sum(selected), selected.map(_.grams).sum)
       }
+    })
+
+    val deleteAction = new AbstractAction("Delete") {
+      override def actionPerformed(e: ActionEvent): Unit = day.get foreach { day ⇒
+        val selected = 0 until day.eatenProducts.size filter t.isRowSelected
+        if (selected.nonEmpty && JOptionPane.showConfirmDialog(InputPane.this.getRootPane,
+          s"Are you sure you want to delete ${selected.size} row${if (selected.size > 1) "s" else ""}?",
+          "Delete rows", JOptionPane.YES_NO_OPTION, JOptionPane.QUESTION_MESSAGE) == JOptionPane.YES_OPTION) {
+          val newEps = day.eatenProducts.zipWithIndex filterNot { case (ep, i) ⇒ selected contains i } map (_._1)
+          Days.commit(day.copy(lastModified = DateTime.now, eatenProducts = newEps))
+          onDateChanged(date.date)
+          onDayEdited(date.date)
+        }
+      }
+    }
+
+    val popup = {
+      val p = new JPopupMenu
+      val _ = p.add(deleteAction)
+      p
+    }
+
+    t.getInputMap.put(KeyStroke.getKeyStroke(KeyEvent.VK_DELETE, 0), "deleteSelectedRows")
+    t.getActionMap.put("deleteSelectedRows", deleteAction)
+    t.addMouseListener(new MouseAdapter {
+      def showPopup(e: MouseEvent): Unit = {
+        val r = t.rowAtPoint(e.getPoint)
+        val c = t.columnAtPoint(e.getPoint)
+        if (r >= 0 && r < t.getRowCount && c >= 0 && c < t.getColumnCount) {
+          if (!(t.isRowSelected(r) && t.isColumnSelected(c))) {
+            t.setRowSelectionInterval(r, r)
+            t.setColumnSelectionInterval(c, c)
+          }
+        }
+        else t.clearSelection()
+        e.getComponent match {
+          case t: JTable ⇒ popup.show(t, e.getX, e.getY)
+        }
+      }
+      override def mousePressed(e: MouseEvent): Unit = if (e.isPopupTrigger) showPopup(e)
+      override def mouseReleased(e: MouseEvent): Unit = if (e.isPopupTrigger) showPopup(e)
     })
 
     t
