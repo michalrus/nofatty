@@ -124,6 +124,25 @@ class ProductListPane(onProductsEdited: ⇒ Unit) extends JPanel {
 
   val convertButton = new JButton
 
+  convertButton.addActionListener(new ActionListener {
+    override def actionPerformed(e: ActionEvent): Unit = {
+      product.get foreach { prod ⇒
+        val (tpe, counterpart): (String, Product) = prod match {
+          case p: BasicProduct    ⇒ ("compound", CompoundProduct(p.uuid, DateTime.now, p.name, 1.0, "", "", Map.empty))
+          case p: CompoundProduct ⇒ ("basic", BasicProduct(p.uuid, DateTime.now, p.name, NutritionalValue.Zero, "", "", "", "", ""))
+        }
+        if (JOptionPane.showConfirmDialog(ProductListPane.this.getRootPane,
+          s"Are you sure you want to convert “${prod.name}”\nto a $tpe product? This cannot be undone.",
+          "Conversion", JOptionPane.YES_NO_OPTION, JOptionPane.QUESTION_MESSAGE) == JOptionPane.YES_OPTION) {
+          Products.commit(counterpart)
+          product.set(Products.find(counterpart.uuid))
+          refresh()
+          onProductsEdited
+        }
+      }
+    }
+  })
+
   val ingredientsModel = new AbstractTableModel {
     override def getRowCount = product.get match {
       case Some(prod: CompoundProduct) ⇒ 1 + prod.ingredients.size
