@@ -5,6 +5,7 @@ import java.awt.event._
 import java.util.UUID
 import java.util.concurrent.atomic.AtomicReference
 import javax.swing._
+import javax.swing.border.{ EmptyBorder, TitledBorder }
 import javax.swing.event.{ DocumentEvent, DocumentListener, ListSelectionEvent, ListSelectionListener }
 import javax.swing.table.AbstractTableModel
 
@@ -172,6 +173,8 @@ class ProductListPane(onProductsEdited: ⇒ Unit) extends JPanel {
     t
   }
 
+  val massPre, massPost = CalculatorTextfield("", _ > 0.0, allowEmpty = true)
+
   val nutritionalValues = {
     def g = CalculatorTextfield("", _ >= 0.0, allowEmpty = true)
     Seq[(String, VerifyingTextField, BasicProduct ⇒ String, (BasicProduct, String, Double) ⇒ BasicProduct)](
@@ -218,6 +221,10 @@ class ProductListPane(onProductsEdited: ⇒ Unit) extends JPanel {
       case Some(prod: CompoundProduct) ⇒
         compoundPane.setVisible(true)
         basicPane.setVisible(false)
+        massPre.reset(prod.massPreExpr)
+        massPost.reset(prod.massPostExpr)
+        import language.reflectiveCalls
+        compoundPane.setMassChange(prod.massReduction)
         ingredientsModel.fireTableDataChanged()
         stats.setData(prod.nutrition, NutritionalValue.PerGrams)
         convertButton.setText(ConvertToBasic)
@@ -232,7 +239,35 @@ class ProductListPane(onProductsEdited: ⇒ Unit) extends JPanel {
     }
   }
 
-  val compoundPane = new JScrollPane(ingredients)
+  val compoundPane = new JPanel {
+    def setMassChange(mc: Double): Unit = border.setTitle(f"<html>Heating-related mass change: <b>${mc * 100.0}%.1f%%</b></html>")
+    setOpaque(false)
+    setLayout(new BorderLayout)
+    private val border = BorderFactory.createTitledBorder("")
+    setMassChange(1.0)
+    private val massRed = {
+      val p = new JPanel
+      p.setOpaque(false)
+      border.setTitleJustification(TitledBorder.CENTER)
+      p.setBorder(BorderFactory.createCompoundBorder(border, new EmptyBorder(0, 0, 5, 0)))
+      p.setLayout(new GridBagLayout)
+      val c = new GridBagConstraints
+      c.gridx = 0; c.gridy = 0; c.weightx = 0.0; c.fill = GridBagConstraints.HORIZONTAL; c.insets = new Insets(0, 5, 0, 5)
+      p.add(new JLabel("A part before processing [g]:"), c)
+      c.gridx = 1; c.gridy = 0; c.weightx = 1.0
+      p.add(massPre, c)
+      c.gridx = 0; c.gridy = 1; c.weightx = 0.0
+      p.add(new JLabel("The same part after processing [g]:"), c)
+      c.gridx = 1; c.gridy = 1; c.weightx = 1.0
+      p.add(massPost, c)
+      p
+    }
+    private val sp = new JScrollPane(ingredients)
+    sp.setBorder(new EmptyBorder(0, 0, 10, 0))
+    sp.setOpaque(false)
+    add(sp, BorderLayout.CENTER)
+    add(massRed, BorderLayout.PAGE_END)
+  }
 
   val basicPane = {
     val p = new JPanel
@@ -308,7 +343,7 @@ class ProductListPane(onProductsEdited: ⇒ Unit) extends JPanel {
     c.fill = GridBagConstraints.HORIZONTAL
     add(stats, c)
 
-    val editorHeight = 250
+    val editorHeight = 300
 
     c.gridy += 1
     basicPane.setPreferredSize(new Dimension(0, editorHeight))
