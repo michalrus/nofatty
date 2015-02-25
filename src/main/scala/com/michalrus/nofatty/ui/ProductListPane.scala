@@ -12,6 +12,7 @@ import javax.swing.table.AbstractTableModel
 import com.michalrus.nofatty.data._
 import com.michalrus.nofatty.ui.utils._
 import org.joda.time.DateTime
+import org.joda.time.format.DateTimeFormat
 
 class ProductListPane(onProductsEdited: ⇒ Unit) extends JPanel {
 
@@ -96,27 +97,70 @@ class ProductListPane(onProductsEdited: ⇒ Unit) extends JPanel {
     l
   }
 
-  products.addMouseListener(new MouseAdapter {
-    override def mouseClicked(e: MouseEvent): Unit = {
-      if (e.getClickCount > 1) {
-        product.get match {
-          case Some(prod) ⇒
-            Option(JOptionPane.showInputDialog(ProductListPane.this.getRootPane,
-              "Enter a new name:", "Rename", JOptionPane.QUESTION_MESSAGE, Unsafe.NullIcon,
-              Unsafe.NullArrayAnyRef, prod.name)).map(_.toString).flatMap(sanitizeName) match {
-              case Some(newName) ⇒
-                Products.commit(prod match {
-                  case p: BasicProduct    ⇒ p.copy(name = newName, lastModified = DateTime.now)
-                  case p: CompoundProduct ⇒ p.copy(name = newName, lastModified = DateTime.now)
-                })
-                setFilter(newName)
-                onProductsEdited
-              case _ ⇒
-            }
+  val productRenameAction = new AbstractAction("Rename") {
+    override def actionPerformed(e: ActionEvent): Unit = {
+      product.get foreach { prod ⇒
+        Option(JOptionPane.showInputDialog(ProductListPane.this.getRootPane,
+          "Enter a new name:", "Rename", JOptionPane.QUESTION_MESSAGE, Unsafe.NullIcon,
+          Unsafe.NullArrayAnyRef, prod.name)).map(_.toString).flatMap(sanitizeName) match {
+          case Some(newName) ⇒
+            Products.commit(prod match {
+              case p: BasicProduct    ⇒ p.copy(name = newName, lastModified = DateTime.now)
+              case p: CompoundProduct ⇒ p.copy(name = newName, lastModified = DateTime.now)
+            })
+            setFilter(newName)
+            onProductsEdited
           case _ ⇒
         }
       }
     }
+  }
+
+  val DateFormatter = DateTimeFormat.forPattern("yyyy/MM/dd")
+
+  val productDeleteAction = new AbstractAction("Delete") {
+    override def actionPerformed(e: ActionEvent): Unit = product.get foreach { prod ⇒
+      if (JOptionPane.showConfirmDialog(ProductListPane.this.getRootPane, s"Are you sure you want to delete “${prod.name}”?",
+        "Product deletion", JOptionPane.YES_NO_OPTION, JOptionPane.QUESTION_MESSAGE) == JOptionPane.YES_OPTION)
+        Products.delete(prod.uuid) match {
+          case Left(Products.DeleteError(uprods, udays)) ⇒
+            JOptionPane.showMessageDialog(ProductListPane.this.getRootPane,
+              s"Compound products still using this product (first 5 of ${uprods.size}):\n[${uprods take 5 mkString ", "}]\n\n" +
+                s"Days still using this product (first 5 of ${udays.size}):\n[${udays take 5 map DateFormatter.print mkString ", "}]",
+              "Deletion failed", JOptionPane.WARNING_MESSAGE)
+          case _ ⇒
+            import language.reflectiveCalls
+            productsModel.refresh(); onProductsEdited
+        }
+    }
+  }
+
+  val productPopup = {
+    val p = new JPopupMenu
+
+    { val _ = p.add(productRenameAction) }
+    { val _ = p.add(productDeleteAction) }
+    p
+  }
+
+  products.getInputMap.put(KeyStroke.getKeyStroke(KeyEvent.VK_DELETE, 0), "deleteSelected")
+  products.getActionMap.put("deleteSelected", productDeleteAction)
+
+  products.addMouseListener(new MouseAdapter {
+    override def mouseClicked(e: MouseEvent): Unit = {
+      if (e.getClickCount > 1)
+        productRenameAction.actionPerformed(new ActionEvent(e, ActionEvent.ACTION_PERFORMED, "dummy"))
+    }
+    def showPopup(e: MouseEvent): Unit = {
+      val r = products.locationToIndex(e.getPoint)
+      if (r >= 0 && r < productsModel.getSize) products.setSelectedIndex(r)
+      else products.clearSelection()
+      e.getComponent match {
+        case l: JList[_] ⇒ productPopup.show(l, e.getX, e.getY)
+      }
+    }
+    override def mousePressed(e: MouseEvent): Unit = if (e.isPopupTrigger) showPopup(e)
+    override def mouseReleased(e: MouseEvent): Unit = if (e.isPopupTrigger) showPopup(e)
   })
 
   val stats = new StatsPane
@@ -242,7 +286,7 @@ class ProductListPane(onProductsEdited: ⇒ Unit) extends JPanel {
         basicPane.setVisible(false)
         massPre.reset(prod.massPreExpr)
         massPost.reset(prod.massPostExpr)
-        import language.reflectiveCalls
+        import scala.language.reflectiveCalls
         compoundPane.setMassChange(prod.massReduction)
         ingredientsModel.fireTableDataChanged()
         stats.setData(prod.nutrition, NutritionalValue.PerGrams)

@@ -4,9 +4,11 @@ import java.util.UUID
 import java.util.concurrent.atomic.AtomicReference
 
 import scala.slick.driver.SQLiteDriver.simple._
-import org.joda.time.DateTime
+import org.joda.time.{ LocalDate, DateTime }
 
 import DB.discard
+
+import scala.slick.jdbc.JdbcBackend
 
 final case class NutritionalValue(kcal: Double, protein: Double, fat: Double, carbohydrate: Double, fiber: Double) {
   def +(that: NutritionalValue): NutritionalValue = NutritionalValue(
@@ -68,10 +70,15 @@ object Products {
 
   def find(uuid: UUID): Option[Product] = memo.get.get(uuid)
 
+  private[this] def uncheckedDelete(uuid: UUID)(implicit session: JdbcBackend.Session): Unit = {
+    discard { DB.basicProducts.filter(_.uuid === uuid).delete }
+    discard { DB.compoundProducts.filter(_.uuid === uuid).delete }
+    discard { DB.ingredients.filter(_.compoundProductID === uuid).delete }
+  }
+
   def commit(p: Product): Unit = {
     DB.db withTransaction { implicit session ⇒
-      discard { DB.basicProducts.filter(_.uuid === p.uuid).delete }
-      discard { DB.compoundProducts.filter(_.uuid === p.uuid).delete }
+      uncheckedDelete(p.uuid)
       discard {
         p match {
           case p: BasicProduct ⇒
@@ -79,13 +86,27 @@ object Products {
               p.kcalExpr, p.nutrition.kcal, p.proteinExpr, p.nutrition.protein, p.fatExpr, p.nutrition.fat,
               p.carbohydrateExpr, p.nutrition.carbohydrate, p.fiberExpr, p.nutrition.fiber))
           case p: CompoundProduct ⇒
-            discard { DB.ingredients.filter(_.compoundProductID === p.uuid).delete }
             discard { DB.compoundProducts += ((p.uuid, p.lastModified, p.name, p.massReduction, p.massPreExpr, p.massPostExpr)) }
             discard { DB.ingredients ++= p.ingredients map { case (uuid, (grams, gramsExpr)) ⇒ (p.uuid, uuid, gramsExpr, grams) } }
         }
       }
       memo.set(memo.get + (p.uuid → p))
       invalidateProductsContaining(p.uuid)
+    }
+  }
+
+  final case class DeleteError(usingProducts: List[String], usingDays: List[LocalDate])
+  def delete(uuid: UUID): Either[DeleteError, Unit] = {
+    val uprods = memo.get.values collect { case p: CompoundProduct if p.ingredients contains uuid ⇒ p.name }
+    val udays = DB.db withSession { implicit session ⇒
+      DB.eatenProducts.filter(_.productId === uuid).map(_.date).run
+    }
+    if (uprods.nonEmpty || udays.nonEmpty)
+      Left(DeleteError(uprods.toList, udays.toList))
+    else {
+      memo.set(memo.get - uuid)
+      DB.db withTransaction { implicit session ⇒ uncheckedDelete(uuid) }
+      Right(())
     }
   }
 
