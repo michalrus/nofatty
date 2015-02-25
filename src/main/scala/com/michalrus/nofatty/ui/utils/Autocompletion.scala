@@ -18,6 +18,13 @@ object FilteringListCellRenderer {
   })
 }
 
+object Autocompletion {
+  object A {
+    val SelectPreviousAutocompletion = "selectPreviousAutocompletion"
+    val SelectNextAutocompletion = "selectNextAutocompletion"
+  }
+}
+
 trait Autocompletion extends TextFieldUsableAsCellEditor { self: JTextComponent ⇒
   def completions: Vector[String]
 
@@ -75,18 +82,26 @@ trait Autocompletion extends TextFieldUsableAsCellEditor { self: JTextComponent 
       }
     }
 
+    // This has to be done using a KeyListener. An Action would require two VK_ENTER’s
+    // when Autocompletion was used as a cell editor. Or how do we easily chain Actions?
     self.addKeyListener(new KeyListener {
       override def keyTyped(e: KeyEvent): Unit = ()
       override def keyPressed(e: KeyEvent): Unit = {
-        import KeyEvent._
-        e.getKeyCode match {
-          case VK_UP    ⇒ modifySelectionBy(-1)
-          case VK_DOWN  ⇒ modifySelectionBy(+1)
-          case VK_ENTER ⇒ acceptSelection()
-          case _        ⇒
-        }
+        if (e.getKeyCode == KeyEvent.VK_ENTER) acceptSelection()
       }
       override def keyReleased(e: KeyEvent): Unit = ()
+    })
+
+    import Autocompletion.A
+
+    self.getInputMap.put(KeyStroke.getKeyStroke(KeyEvent.VK_UP, 0), A.SelectPreviousAutocompletion)
+    self.getActionMap.put(A.SelectPreviousAutocompletion, new AbstractAction() {
+      override def actionPerformed(e: ActionEvent): Unit = modifySelectionBy(-1)
+    })
+
+    self.getInputMap.put(KeyStroke.getKeyStroke(KeyEvent.VK_DOWN, 0), A.SelectNextAutocompletion)
+    self.getActionMap.put(A.SelectNextAutocompletion, new AbstractAction() {
+      override def actionPerformed(e: ActionEvent): Unit = modifySelectionBy(+1)
     })
 
     private[this] lazy val normalBackground = self.getBackground
