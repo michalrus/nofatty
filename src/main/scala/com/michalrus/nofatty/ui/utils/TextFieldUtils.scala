@@ -51,11 +51,14 @@ final class VerifyingTextField(initial: String,
     override def removeUpdate(e: DocumentEvent): Unit = check()
   })
 
+  private[this] val _selectAllOnFocus = new AtomicBoolean(selectAllOnFocus)
+  override def setSelectAllOnFocus(v: Boolean): Unit = _selectAllOnFocus.set(v)
+
   self.addFocusListener(new FocusListener {
     override def focusGained(e: FocusEvent): Unit = {
       self.setText(originalInput)
       isBeingEditedByUser.set(true)
-      if (selectAllOnFocus) self.selectAll()
+      if (_selectAllOnFocus.get) self.selectAll()
     }
     override def focusLost(e: FocusEvent): Unit = {
       isBeingEditedByUser.set(false)

@@ -38,9 +38,10 @@ class BetterTable(model: TableModel, isInstantlyEditable: (Int, Int) ⇒ Boolean
         Option(getEditorComponent) match {
           case Some(ec: JTextField with TextFieldUsableAsCellEditor) ⇒
             ec.reset(ks.getKeyChar.toString)
+            ec.setSelectAllOnFocus(false)
             ec.requestFocus()
             edt {
-              ec.setCaretPosition(1)
+              ec.setSelectAllOnFocus(true)
             }
             true
           case _ ⇒ false

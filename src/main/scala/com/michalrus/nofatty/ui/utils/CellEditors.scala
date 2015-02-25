@@ -11,6 +11,7 @@ import com.michalrus.nofatty.Calculator
 trait TextFieldUsableAsCellEditor {
   def correctedInput: Option[String]
   def reset(value: String)
+  def setSelectAllOnFocus(v: Boolean)
 }
 
 sealed abstract class WeirdTextFieldCellEditor extends AbstractCellEditor with TableCellEditor { self ⇒

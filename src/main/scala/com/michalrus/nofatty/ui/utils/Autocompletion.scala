@@ -2,6 +2,7 @@ package com.michalrus.nofatty.ui.utils
 
 import java.awt.event._
 import java.awt.{ BorderLayout, Color, Dimension }
+import java.util.concurrent.atomic.AtomicBoolean
 import java.util.regex.Pattern
 import javax.swing._
 import javax.swing.event.{ DocumentEvent, DocumentListener }
@@ -108,8 +109,11 @@ trait Autocompletion extends TextFieldUsableAsCellEditor { self: JTextComponent 
     override def removeUpdate(e: DocumentEvent): Unit = autocomplete()
   })
 
+  private[this] val _selectAllOnFocus = new AtomicBoolean(true)
+  override def setSelectAllOnFocus(v: Boolean): Unit = _selectAllOnFocus.set(v)
+
   self.addFocusListener(new FocusListener {
-    override def focusGained(e: FocusEvent): Unit = self.selectAll()
+    override def focusGained(e: FocusEvent): Unit = if (_selectAllOnFocus.get) self.selectAll()
     override def focusLost(e: FocusEvent): Unit = self.select(0, 0)
   })
 }
