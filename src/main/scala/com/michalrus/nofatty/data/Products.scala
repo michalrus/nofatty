@@ -47,6 +47,17 @@ final case class CompoundProduct(uuid: UUID, lastModified: DateTime, name: Strin
     if (xs.isEmpty) NutritionalValue.Zero
     else NutritionalValue.weightedMean(xs.toSeq) * massReduction
   }
+  /** Checks for potential cycles in the graph of Products */
+  def couldContain(subproduct: UUID): Boolean =
+    Products.find(subproduct) match {
+      case Some(sub: BasicProduct)    ⇒ true
+      case Some(sub: CompoundProduct) ⇒ !(sub ingredientsContain this.uuid)
+      case None                       ⇒ false
+    }
+  def ingredientsContain(subproduct: UUID): Boolean =
+    uuid == subproduct ||
+      (ingredients contains subproduct) ||
+      (ingredients.keySet flatMap Products.find collect { case cp: CompoundProduct ⇒ cp } exists (_ ingredientsContain subproduct))
 }
 
 object Products {
