@@ -249,6 +249,7 @@ class ProductListPane(onProductsEdited: ⇒ Unit) extends JPanel {
               checkEdit(prod, uuid, newNewRecord._1)({
                 Products.commit(prod.copy(lastModified = DateTime.now, ingredients = prod.ingredients + (uuid → ((grams, gramsExpr)))))
                 onSelectionChanged()
+                onProductsEdited
               }, {
                 newIngredientsRecord.set(("", newNewRecord._2))
                 fireTableDataChanged()
@@ -266,6 +267,7 @@ class ProductListPane(onProductsEdited: ⇒ Unit) extends JPanel {
               val newIngs = prodWithoutOld.ingredients + (newUuid → ((newGrams, newGramsExpr)))
               Products.commit(prod.copy(lastModified = DateTime.now, ingredients = newIngs))
               onSelectionChanged()
+              onProductsEdited
             }, {})
           }
         case _ ⇒
@@ -292,7 +294,18 @@ class ProductListPane(onProductsEdited: ⇒ Unit) extends JPanel {
     })
 
     val deleteAction = new AbstractAction("Delete") {
-      override def actionPerformed(e: ActionEvent): Unit = {
+      override def actionPerformed(e: ActionEvent): Unit = product.get match {
+        case Some(product: CompoundProduct) ⇒
+          val selected = 0 until t.getRowCount filter t.isRowSelected
+          if (selected.nonEmpty && JOptionPane.showConfirmDialog(ProductListPane.this.getRootPane,
+            s"Are you sure you want to delete ${selected.size} ingredient${if (selected.size > 1) "s" else ""}?",
+            "Delete ingredients", JOptionPane.YES_NO_OPTION, JOptionPane.QUESTION_MESSAGE) == JOptionPane.YES_OPTION) {
+            val uuids = selected map (t.getValueAt(_, 0).toString) flatMap Products.names.get
+            Products.commit(product.copy(lastModified = DateTime.now, ingredients = product.ingredients -- uuids))
+            onSelectionChanged()
+            onProductsEdited
+          }
+        case _ ⇒
       }
     }
 
