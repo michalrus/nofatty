@@ -15,7 +15,7 @@ import com.michalrus.nofatty.ui.utils._
 import org.joda.time.DateTime
 import org.joda.time.format.DateTimeFormat
 
-class ProductListPane(onProductsEdited: ⇒ Unit) extends JPanel {
+class ProductListPane(onProductEdited: UUID ⇒ Unit) extends JPanel {
 
   val filter = new JTextField
 
@@ -113,7 +113,7 @@ class ProductListPane(onProductsEdited: ⇒ Unit) extends JPanel {
               case p: CompoundProduct ⇒ p.copy(name = newName, lastModified = DateTime.now)
             })
             setFilter(newName)
-            onProductsEdited
+            onProductEdited(prod.uuid)
           case _ ⇒
         }
       }
@@ -133,7 +133,7 @@ class ProductListPane(onProductsEdited: ⇒ Unit) extends JPanel {
               "Deletion failed", JOptionPane.WARNING_MESSAGE)
           case _ ⇒
             import language.reflectiveCalls
-            productsModel.refresh(); onProductsEdited
+            productsModel.refresh() // onProductEdited(???) ← no days are using them anyway
         }
     }
   }
@@ -184,7 +184,7 @@ class ProductListPane(onProductsEdited: ⇒ Unit) extends JPanel {
           Products.commit(counterpart)
           product.set(Products.find(counterpart.uuid))
           refresh()
-          onProductsEdited
+          onProductEdited(prod.uuid)
         }
       }
     }
@@ -249,7 +249,7 @@ class ProductListPane(onProductsEdited: ⇒ Unit) extends JPanel {
               checkEdit(prod, uuid, newNewRecord._1)({
                 Products.commit(prod.copy(lastModified = DateTime.now, ingredients = prod.ingredients + (uuid → ((grams, gramsExpr)))))
                 onSelectionChanged()
-                onProductsEdited
+                onProductEdited(prod.uuid)
               }, {
                 newIngredientsRecord.set(("", newNewRecord._2))
                 fireTableDataChanged()
@@ -267,7 +267,7 @@ class ProductListPane(onProductsEdited: ⇒ Unit) extends JPanel {
               val newIngs = prodWithoutOld.ingredients + (newUuid → ((newGrams, newGramsExpr)))
               Products.commit(prod.copy(lastModified = DateTime.now, ingredients = newIngs))
               onSelectionChanged()
-              onProductsEdited
+              onProductEdited(prod.uuid)
             }, {})
           }
         case _ ⇒
@@ -303,7 +303,7 @@ class ProductListPane(onProductsEdited: ⇒ Unit) extends JPanel {
             val uuids = selected map (t.getValueAt(_, 0).toString) flatMap Products.names.get
             Products.commit(product.copy(lastModified = DateTime.now, ingredients = product.ingredients -- uuids))
             onSelectionChanged()
-            onProductsEdited
+            onProductEdited(product.uuid)
           }
         case _ ⇒
       }
@@ -340,7 +340,7 @@ class ProductListPane(onProductsEdited: ⇒ Unit) extends JPanel {
               val newProd = modifier(prod, field.originalInput, field.correctedInput filter (_.nonEmpty) map (_.toDouble) getOrElse 0.0)
               Products.commit(newProd.copy(lastModified = DateTime.now))
               onSelectionChanged()
-              onProductsEdited
+              onProductEdited(prod.uuid)
             case _ ⇒
           }
         }

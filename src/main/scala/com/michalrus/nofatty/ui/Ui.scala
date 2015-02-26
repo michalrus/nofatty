@@ -2,7 +2,8 @@ package com.michalrus.nofatty.ui
 
 import java.awt.{ BorderLayout, Dimension }
 import javax.swing._
-import com.michalrus.nofatty.data.{ Days, Day }
+
+import com.michalrus.nofatty.data.Days
 import com.michalrus.nofatty.ui.utils._
 import org.jfree.chart.ChartPanel
 import org.joda.time.LocalDate
@@ -26,18 +27,20 @@ object Ui {
       val ltv = new JTabbedPane()
       f.add(ltv, BorderLayout.LINE_START)
 
+      val today = LocalDate.now
+
       val charts = {
         import com.michalrus.nofatty.chart._
         val cs = List(EnergyIntake, StackedRatios, FatCarbohydrate)
-        val days = chartDays(ChartDays)
+        val days = (0 until ChartDays).toVector.reverse map today.minusDays map (d ⇒ (d, Days.find(d))) dropWhile (_._2.isEmpty)
         cs foreach (_.refresh(days))
         cs
       }
 
       val inputPane = new InputPane(date ⇒ charts foreach (_.refresh(Seq((date, Days.find(date))))))
       ltv.addTab("Daily input", inputPane)
-      ltv.addTab("Products", new ProductListPane({
-        val days = chartDays(ChartDays)
+      ltv.addTab("Products", new ProductListPane({ editedUuid ⇒
+        val days = Days.usingProduct(editedUuid) filter (org.joda.time.Days.daysBetween(_, today).getDays < ChartDays) map (d ⇒ (d, Days find d))
         charts foreach (_.refresh(days))
         inputPane.refresh()
       }))
@@ -58,11 +61,6 @@ object Ui {
       split.setDividerLocation(0.5)
       ltv.setPreferredSize(new Dimension(360, 0))
     }
-  }
-
-  def chartDays(n: Int): Vector[(LocalDate, Option[Day])] = {
-    val today = LocalDate.now
-    (0 until n).toVector.reverse map today.minusDays map (d ⇒ (d, Days.find(d))) dropWhile (_._2.isEmpty)
   }
 
 }

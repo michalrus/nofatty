@@ -36,4 +36,10 @@ object Days {
     }
   }
 
+  def usingProduct(uuid: UUID): Seq[LocalDate] = {
+    DB.db withSession { implicit session ⇒
+      DB.eatenProducts.filter(_.productId === uuid).map(_.date).groupBy(identity).map(_._1).run
+    }
+  }
+
 }
