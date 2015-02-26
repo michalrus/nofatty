@@ -1,10 +1,10 @@
 package com.michalrus.nofatty.ui.utils
 
-import java.awt.event.{ FocusEvent, FocusListener, KeyEvent }
+import java.awt.event._
 import javax.swing.table.TableModel
-import javax.swing.{ JTextField, JComponent, JTable, KeyStroke }
+import javax.swing._
 
-class BetterTable(model: TableModel, isInstantlyEditable: (Int, Int) ⇒ Boolean) extends JTable(model) {
+class BetterTable(model: TableModel, isInstantlyEditable: (Int, Int) ⇒ Boolean, cellPopup: ⇒ JPopupMenu) extends JTable(model) {
 
   setCellSelectionEnabled(true)
   setSurrendersFocusOnKeystroke(true)
@@ -57,6 +57,25 @@ class BetterTable(model: TableModel, isInstantlyEditable: (Int, Int) ⇒ Boolean
         setColumnSelectionInterval(0, 0)
       }
     override def focusLost(e: FocusEvent): Unit = ()
+  })
+
+  addMouseListener(new MouseAdapter {
+    def showPopup(e: MouseEvent): Unit = {
+      val r = rowAtPoint(e.getPoint)
+      val c = columnAtPoint(e.getPoint)
+      if (r >= 0 && r < getRowCount && c >= 0 && c < getColumnCount) {
+        if (!(isRowSelected(r) && isColumnSelected(c))) {
+          setRowSelectionInterval(r, r)
+          setColumnSelectionInterval(c, c)
+        }
+      }
+      else clearSelection()
+      e.getComponent match {
+        case t: JTable ⇒ cellPopup.show(t, e.getX, e.getY)
+      }
+    }
+    override def mousePressed(e: MouseEvent): Unit = if (e.isPopupTrigger) showPopup(e)
+    override def mouseReleased(e: MouseEvent): Unit = if (e.isPopupTrigger) showPopup(e)
   })
 
 }

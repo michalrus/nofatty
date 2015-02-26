@@ -141,7 +141,8 @@ class InputPane(onDayEdited: LocalDate ⇒ Unit) extends JPanel {
   }
 
   val table: BetterTable = {
-    val t = new BetterTable(model, (row, _) ⇒ row >= model.getRowCount - 1)
+    val popup = new JPopupMenu
+    val t = new BetterTable(model, (row, _) ⇒ row >= model.getRowCount - 1, popup)
     t.getTableHeader.setReorderingAllowed(false)
     t.getTableHeader.setResizingAllowed(false)
 
@@ -189,32 +190,10 @@ class InputPane(onDayEdited: LocalDate ⇒ Unit) extends JPanel {
       }
     }
 
-    val popup = {
-      val p = new JPopupMenu
-      val _ = p.add(deleteAction)
-      p
-    }
+    { val _ = popup.add(deleteAction) }
 
     t.getInputMap.put(KeyStroke.getKeyStroke(KeyEvent.VK_DELETE, 0), "deleteSelectedRows")
     t.getActionMap.put("deleteSelectedRows", deleteAction)
-    t.addMouseListener(new MouseAdapter {
-      def showPopup(e: MouseEvent): Unit = {
-        val r = t.rowAtPoint(e.getPoint)
-        val c = t.columnAtPoint(e.getPoint)
-        if (r >= 0 && r < t.getRowCount && c >= 0 && c < t.getColumnCount) {
-          if (!(t.isRowSelected(r) && t.isColumnSelected(c))) {
-            t.setRowSelectionInterval(r, r)
-            t.setColumnSelectionInterval(c, c)
-          }
-        }
-        else t.clearSelection()
-        e.getComponent match {
-          case t: JTable ⇒ popup.show(t, e.getX, e.getY)
-        }
-      }
-      override def mousePressed(e: MouseEvent): Unit = if (e.isPopupTrigger) showPopup(e)
-      override def mouseReleased(e: MouseEvent): Unit = if (e.isPopupTrigger) showPopup(e)
-    })
 
     t
   }

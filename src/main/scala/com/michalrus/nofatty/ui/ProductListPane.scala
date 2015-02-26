@@ -267,7 +267,8 @@ class ProductListPane(onProductsEdited: ⇒ Unit) extends JPanel {
   }
 
   val ingredients: BetterTable = {
-    val t = new BetterTable(ingredientsModel, (row, _) ⇒ row >= ingredientsModel.getRowCount - 1)
+    val popup = new JPopupMenu
+    val t = new BetterTable(ingredientsModel, (row, _) ⇒ row >= ingredientsModel.getRowCount - 1, popup)
     t.getTableHeader.setReorderingAllowed(false)
     t.getTableHeader.setResizingAllowed(false)
 
@@ -282,6 +283,16 @@ class ProductListPane(onProductsEdited: ⇒ Unit) extends JPanel {
       r.setHorizontalAlignment(SwingConstants.RIGHT)
       r
     })
+
+    val deleteAction = new AbstractAction("Delete") {
+      override def actionPerformed(e: ActionEvent): Unit = {
+      }
+    }
+
+    { val _ = popup.add(deleteAction) }
+
+    t.getInputMap.put(KeyStroke.getKeyStroke(KeyEvent.VK_DELETE, 0), "deleteSelectedRows")
+    t.getActionMap.put("deleteSelectedRows", deleteAction)
 
     t
   }
