@@ -9,6 +9,7 @@ import javax.swing.border.{ EmptyBorder, TitledBorder }
 import javax.swing.event.{ DocumentEvent, DocumentListener, ListSelectionEvent, ListSelectionListener }
 import javax.swing.table.AbstractTableModel
 
+import com.michalrus.nofatty.Calculator
 import com.michalrus.nofatty.data._
 import com.michalrus.nofatty.ui.utils._
 import org.joda.time.DateTime
@@ -82,8 +83,11 @@ class ProductListPane(onProductsEdited: ⇒ Unit) extends JPanel {
 
   val product = new AtomicReference[Option[Product]](None)
 
+  val newIngredientsRecord = new AtomicReference[(String, String)](("", ""))
+
   def onSelectionChanged(): Unit = {
     product.set(Option(products.getSelectedValue) flatMap Products.names.get flatMap Products.find)
+    newIngredientsRecord.set(("", ""))
     refresh()
   }
 
@@ -116,9 +120,8 @@ class ProductListPane(onProductsEdited: ⇒ Unit) extends JPanel {
     }
   }
 
-  val DateFormatter = DateTimeFormat.forPattern("yyyy/MM/dd")
-
   val productDeleteAction = new AbstractAction("Delete") {
+    val DateFormatter = DateTimeFormat.forPattern("yyyy/MM/dd")
     override def actionPerformed(e: ActionEvent): Unit = product.get foreach { prod ⇒
       if (JOptionPane.showConfirmDialog(ProductListPane.this.getRootPane, s"Are you sure you want to delete “${prod.name}”?",
         "Product deletion", JOptionPane.YES_NO_OPTION, JOptionPane.QUESTION_MESSAGE) == JOptionPane.YES_OPTION)
@@ -200,7 +203,11 @@ class ProductListPane(onProductsEdited: ⇒ Unit) extends JPanel {
     override def getColumnClass(columnIndex: Int) = classOf[String]
     override def isCellEditable(rowIndex: Int, columnIndex: Int) = true
     override def getValueAt(rowIndex: Int, columnIndex: Int): String =
-      if (rowIndex >= getRowCount - 1) ""
+      if (rowIndex >= getRowCount - 1)
+        columnIndex match {
+          case 0 ⇒ newIngredientsRecord.get._1
+          case _ ⇒ newIngredientsRecord.get._2
+        }
       else product.get match {
         case Some(prod: CompoundProduct) ⇒
           val ingrs = prod.ingredients.flatMap { case (uuid, (_, gramsExpr)) ⇒ Products find uuid map ((_, gramsExpr)) }
@@ -211,8 +218,43 @@ class ProductListPane(onProductsEdited: ⇒ Unit) extends JPanel {
           }
         case _ ⇒ ""
       }
-    override def setValueAt(aValue: scala.Any, rowIndex: Int, columnIndex: Int): Unit = {
-      // TODO
+    override def setValueAt(aValue: AnyRef, rowIndex: Int, columnIndex: Int): Unit = {
+      if (rowIndex == getRowCount - 1) {
+        val oldNewRecord = newIngredientsRecord.get
+        val newNewRecord: (String, String) = (
+          if (columnIndex == 0) aValue.toString else oldNewRecord._1,
+          if (columnIndex == 1) aValue.toString else oldNewRecord._2
+        )
+        newIngredientsRecord.set(newNewRecord)
+        if (newNewRecord._1.nonEmpty && newNewRecord._2.nonEmpty)
+          product.get match {
+            case Some(prod: CompoundProduct) ⇒
+              val uuid = Products.names(newNewRecord._1)
+              val gramsExpr = newNewRecord._2
+              val grams = Calculator(gramsExpr).right.toOption.getOrElse(0.0)
+              if (prod.ingredients contains uuid) {
+                JOptionPane.showMessageDialog(ProductListPane.this.getRootPane,
+                  s"“${newNewRecord._1}” is already a part of “${prod.name}”.", "Adding failed", JOptionPane.WARNING_MESSAGE)
+                newIngredientsRecord.set(("", newNewRecord._2))
+                fireTableDataChanged()
+              }
+              else if (!(prod couldContain uuid)) {
+                JOptionPane.showMessageDialog(ProductListPane.this.getRootPane,
+                  s"Adding “${newNewRecord._1}” to “${prod.name}” would result in a cycle in the products graph.\n" +
+                    s"Are you trying to make potatos of french fries? ☺", "Adding failed", JOptionPane.WARNING_MESSAGE)
+                newIngredientsRecord.set(("", newNewRecord._2))
+                fireTableDataChanged()
+              }
+              else {
+                Products.commit(prod.copy(lastModified = DateTime.now, ingredients = prod.ingredients + (uuid → ((grams, gramsExpr)))))
+                onSelectionChanged()
+              }
+            case _ ⇒
+          }
+      }
+      else {
+        // TODO
+      }
     }
   }
 
