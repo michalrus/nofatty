@@ -219,16 +219,16 @@ class ProductListPane(onProductsEdited: ⇒ Unit) extends JPanel {
         case _ ⇒ ""
       }
     override def setValueAt(aValue: AnyRef, rowIndex: Int, columnIndex: Int): Unit = {
-      if (rowIndex == getRowCount - 1) {
-        val oldNewRecord = newIngredientsRecord.get
-        val newNewRecord: (String, String) = (
-          if (columnIndex == 0) aValue.toString else oldNewRecord._1,
-          if (columnIndex == 1) aValue.toString else oldNewRecord._2
-        )
-        newIngredientsRecord.set(newNewRecord)
-        if (newNewRecord._1.nonEmpty && newNewRecord._2.nonEmpty)
-          product.get match {
-            case Some(prod: CompoundProduct) ⇒
+      product.get match {
+        case Some(prod: CompoundProduct) ⇒
+          if (rowIndex == getRowCount - 1) {
+            val oldNewRecord = newIngredientsRecord.get
+            val newNewRecord: (String, String) = (
+              if (columnIndex == 0) aValue.toString else oldNewRecord._1,
+              if (columnIndex == 1) aValue.toString else oldNewRecord._2
+            )
+            newIngredientsRecord.set(newNewRecord)
+            if (newNewRecord._1.nonEmpty && newNewRecord._2.nonEmpty) {
               val uuid = Products.names(newNewRecord._1)
               val gramsExpr = newNewRecord._2
               val grams = Calculator(gramsExpr).right.toOption.getOrElse(0.0)
@@ -249,11 +249,19 @@ class ProductListPane(onProductsEdited: ⇒ Unit) extends JPanel {
                 Products.commit(prod.copy(lastModified = DateTime.now, ingredients = prod.ingredients + (uuid → ((grams, gramsExpr)))))
                 onSelectionChanged()
               }
-            case _ ⇒
+            }
           }
-      }
-      else {
-        // TODO
+          else {
+            val oldUuid = Products.names(getValueAt(rowIndex, 0))
+            val (newUuid, newGramsExpr) =
+              if (columnIndex == 0) (Products.names(aValue.toString), getValueAt(rowIndex, 1))
+              else (oldUuid, aValue.toString)
+            val newGrams = Calculator(newGramsExpr).right.toOption getOrElse 0.0
+            val newIngs = prod.ingredients - oldUuid + (newUuid → ((newGrams, newGramsExpr)))
+            Products.commit(prod.copy(lastModified = DateTime.now, ingredients = newIngs))
+            onSelectionChanged()
+          }
+        case _ ⇒
       }
     }
   }
