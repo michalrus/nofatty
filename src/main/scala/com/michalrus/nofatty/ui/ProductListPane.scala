@@ -219,6 +219,20 @@ class ProductListPane(onProductsEdited: ⇒ Unit) extends JPanel {
         case _ ⇒ ""
       }
     override def setValueAt(aValue: AnyRef, rowIndex: Int, columnIndex: Int): Unit = {
+      def checkEdit(prod: CompoundProduct, newSubproduct: UUID, newSubproductName: String)(ifOK: ⇒ Unit, ifNotOK: ⇒ Unit): Unit = {
+        if (prod.ingredients contains newSubproduct) {
+          JOptionPane.showMessageDialog(ProductListPane.this.getRootPane,
+            s"“$newSubproductName” is already a part of “${prod.name}”.", "Adding failed", JOptionPane.WARNING_MESSAGE)
+          ifNotOK
+        }
+        else if (!(prod couldContain newSubproduct)) {
+          JOptionPane.showMessageDialog(ProductListPane.this.getRootPane,
+            s"Adding “$newSubproductName” to “${prod.name}” would result in a cycle in the products graph.\n" +
+              s"Are you trying to make potatos out of french fries? ☺", "Adding failed", JOptionPane.WARNING_MESSAGE)
+          ifNotOK
+        }
+        else ifOK
+      }
       product.get match {
         case Some(prod: CompoundProduct) ⇒
           if (rowIndex == getRowCount - 1) {
@@ -232,23 +246,13 @@ class ProductListPane(onProductsEdited: ⇒ Unit) extends JPanel {
               val uuid = Products.names(newNewRecord._1)
               val gramsExpr = newNewRecord._2
               val grams = Calculator(gramsExpr).right.toOption.getOrElse(0.0)
-              if (prod.ingredients contains uuid) {
-                JOptionPane.showMessageDialog(ProductListPane.this.getRootPane,
-                  s"“${newNewRecord._1}” is already a part of “${prod.name}”.", "Adding failed", JOptionPane.WARNING_MESSAGE)
-                newIngredientsRecord.set(("", newNewRecord._2))
-                fireTableDataChanged()
-              }
-              else if (!(prod couldContain uuid)) {
-                JOptionPane.showMessageDialog(ProductListPane.this.getRootPane,
-                  s"Adding “${newNewRecord._1}” to “${prod.name}” would result in a cycle in the products graph.\n" +
-                    s"Are you trying to make potatos of french fries? ☺", "Adding failed", JOptionPane.WARNING_MESSAGE)
-                newIngredientsRecord.set(("", newNewRecord._2))
-                fireTableDataChanged()
-              }
-              else {
+              checkEdit(prod, uuid, newNewRecord._1)({
                 Products.commit(prod.copy(lastModified = DateTime.now, ingredients = prod.ingredients + (uuid → ((grams, gramsExpr)))))
                 onSelectionChanged()
-              }
+              }, {
+                newIngredientsRecord.set(("", newNewRecord._2))
+                fireTableDataChanged()
+              })
             }
           }
           else {
@@ -257,9 +261,12 @@ class ProductListPane(onProductsEdited: ⇒ Unit) extends JPanel {
               if (columnIndex == 0) (Products.names(aValue.toString), getValueAt(rowIndex, 1))
               else (oldUuid, aValue.toString)
             val newGrams = Calculator(newGramsExpr).right.toOption getOrElse 0.0
-            val newIngs = prod.ingredients - oldUuid + (newUuid → ((newGrams, newGramsExpr)))
-            Products.commit(prod.copy(lastModified = DateTime.now, ingredients = newIngs))
-            onSelectionChanged()
+            val prodWithoutOld = prod.copy(ingredients = prod.ingredients - oldUuid)
+            checkEdit(prodWithoutOld, newUuid, Products.find(newUuid).map(_.name).getOrElse(""))({
+              val newIngs = prodWithoutOld.ingredients + (newUuid → ((newGrams, newGramsExpr)))
+              Products.commit(prod.copy(lastModified = DateTime.now, ingredients = newIngs))
+              onSelectionChanged()
+            }, {})
           }
         case _ ⇒
       }
