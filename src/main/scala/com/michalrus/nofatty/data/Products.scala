@@ -45,7 +45,7 @@ final case class CompoundProduct(uuid: UUID, lastModified: DateTime, name: Strin
   lazy val nutrition: NutritionalValue = {
     val xs = ingredients flatMap { case (id, (grams, gramsExpr)) ⇒ Products find id map (p ⇒ (p.nutrition, grams)) }
     if (xs.isEmpty) NutritionalValue.Zero
-    else NutritionalValue.weightedMean(xs.toSeq) * massReduction
+    else NutritionalValue.weightedMean(xs.toSeq) * (1.0 / massReduction)
   }
   /** Checks for potential cycles in the graph of Products */
   def couldContain(subproduct: UUID): Boolean =

@@ -319,6 +319,20 @@ class ProductListPane(onProductEdited: UUID ⇒ Unit) extends JPanel {
 
   val massPre, massPost = CalculatorTextfield("", _ > 0.0, allowEmpty = true)
 
+  Seq(massPre, massPost) foreach (_.addFocusListener(new FocusListener {
+    override def focusGained(e: FocusEvent): Unit = ()
+    override def focusLost(e: FocusEvent): Unit = product.get match {
+      case Some(prod: CompoundProduct) ⇒
+        def calc(in: VerifyingTextField) = in.correctedInput flatMap (e ⇒ Calculator.apply(e).right.toOption)
+        val reduction = (for { pre ← calc(massPre); post ← calc(massPost) } yield post / pre) getOrElse 1.0
+        Products.commit(prod.copy(lastModified = DateTime.now, massReduction = reduction,
+          massPreExpr = massPre.originalInput, massPostExpr = massPost.originalInput))
+        onSelectionChanged()
+        onProductEdited(prod.uuid)
+      case _ ⇒
+    }
+  }))
+
   val nutritionalValues = {
     def g = CalculatorTextfield("", _ >= 0.0, allowEmpty = true)
     Seq[(String, VerifyingTextField, BasicProduct ⇒ String, (BasicProduct, String, Double) ⇒ BasicProduct)](
@@ -384,7 +398,10 @@ class ProductListPane(onProductEdited: UUID ⇒ Unit) extends JPanel {
   }
 
   val compoundPane = new JPanel {
-    def setMassChange(mc: Double): Unit = border.setTitle(f"<html>Heating-related mass change: <b>${mc * 100.0}%.1f%%</b></html>")
+    def setMassChange(mc: Double): Unit = {
+      border.setTitle(f"<html>Heating-related mass change: <b>${mc * 100.0}%.1f%%</b></html>")
+      repaint()
+    }
     setOpaque(false)
     setLayout(new BorderLayout)
     private val border = BorderFactory.createTitledBorder("")
