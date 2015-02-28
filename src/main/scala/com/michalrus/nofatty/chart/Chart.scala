@@ -10,11 +10,13 @@ import org.jfree.chart.axis.DateAxis
 import org.jfree.chart.labels.StandardXYToolTipGenerator
 import org.jfree.chart.plot.XYPlot
 import org.jfree.chart.renderer.xy.AbstractXYItemRenderer
-import org.joda.time.LocalDate
+import org.jfree.data.time.TimeTableXYDataset
+import org.joda.time.{ DateTimeZone, LocalDate }
 
 object Chart {
   val Energy = "Energy [kcal]"
   val Weight = "Weight [kg]"
+  val WeightTrend = "Weight trend [kg]"
   val Mass = "Mass [g]"
   val Percent = "%"
   val Protein = "Protein"
@@ -50,5 +52,7 @@ trait Chart {
   import scala.language.implicitConversions
   implicit def localDateToDay(d: LocalDate): org.jfree.data.time.Day =
     new org.jfree.data.time.Day(d.getDayOfMonth, d.getMonthOfYear, d.getYear)
-
+  def datasetToVector(ds: TimeTableXYDataset, series: Int): Vector[(LocalDate, Double)] =
+    (0 until ds.getItemCount(series)).map(i ⇒
+      (new LocalDate(ds.getXValue(series, i).toLong, DateTimeZone.getDefault), ds.getYValue(series, i))).toVector
 }
