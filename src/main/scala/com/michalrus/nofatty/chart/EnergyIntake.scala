@@ -15,7 +15,7 @@ object EnergyIntake extends Chart {
 
   override val title: String = "Energy intake"
 
-  private[this] val energyDataset, weightDataset, weightTrendDataset = new TimeTableXYDataset()
+  private[this] val energyDataset, energyTrendDataset, weightDataset, weightTrendDataset = new TimeTableXYDataset()
 
   override val chart: JFreeChart = {
     val plot = new XYPlot
@@ -42,18 +42,29 @@ object EnergyIntake extends Chart {
     })
     plot.mapDatasetToRangeAxis(0, 0)
 
-    plot.setDataset(1, weightDataset)
+    plot.setDataset(1, energyTrendDataset)
     plot.setRenderer(1, {
+      val r = new XYSplineRenderer()
+      r.setSeriesPaint(0, Blue)
+      r.setSeriesShapesVisible(0, false)
+      r.setSeriesStroke(0, new BasicStroke(2))
+      setToolTip(r)
+      r
+    })
+    plot.mapDatasetToRangeAxis(1, 0)
+
+    plot.setDataset(2, weightDataset)
+    plot.setRenderer(2, {
       val r = new XYLineAndShapeRenderer(false, true)
       r.setSeriesPaint(0, Red)
       r.setSeriesShape(0, ellipse(3))
       setToolTip(r)
       r
     })
-    plot.mapDatasetToRangeAxis(1, 1)
+    plot.mapDatasetToRangeAxis(2, 1)
 
-    plot.setDataset(2, weightTrendDataset)
-    plot.setRenderer(2, {
+    plot.setDataset(3, weightTrendDataset)
+    plot.setRenderer(3, {
       val r = new XYSplineRenderer()
       r.setSeriesPaint(0, Red)
       r.setSeriesShapesVisible(0, false)
@@ -61,7 +72,7 @@ object EnergyIntake extends Chart {
       setToolTip(r)
       r
     })
-    plot.mapDatasetToRangeAxis(2, 1)
+    plot.mapDatasetToRangeAxis(3, 1)
 
     plot.setDatasetRenderingOrder(DatasetRenderingOrder.REVERSE)
 
@@ -83,6 +94,11 @@ object EnergyIntake extends Chart {
     weightTrendDataset.clear()
     Trend.exponentialMovingAverage(0.25, Trend.spline1(datasetToVector(weightDataset, 0))) foreach {
       case (date, value) ⇒ weightTrendDataset.add(date, value, WeightTrend)
+    }
+
+    energyTrendDataset.clear()
+    Trend.exponentialMovingAverage(0.1, Trend.spline1(datasetToVector(energyDataset, 0))) foreach {
+      case (date, value) ⇒ energyTrendDataset.add(date, value, EnergyTrend)
     }
   }
 }

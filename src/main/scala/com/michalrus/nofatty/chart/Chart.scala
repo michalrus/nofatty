@@ -15,6 +15,7 @@ import org.joda.time.{ DateTimeZone, LocalDate }
 
 object Chart {
   val Energy = "Energy [kcal]"
+  val EnergyTrend = "Energy trend [kcal]"
   val Weight = "Weight [kg]"
   val WeightTrend = "Weight trend [kg]"
   val Mass = "Mass [g]"
