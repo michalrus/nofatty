@@ -57,7 +57,7 @@ public class BreakingXYSplineRenderer extends XYSplineRenderer {
                 s.points.add(p);
         }
 
-        if (item == dataset.getItemCount(series) - 1) {     // construct path
+        if (item == dataset.getItemCount(series) - 1 || Double.isNaN(y1)) {     // construct path
             if (s.points.size() > 1) {
                 Point2D origin;
                 if (this.getFillType() == FillType.TO_ZERO) {
