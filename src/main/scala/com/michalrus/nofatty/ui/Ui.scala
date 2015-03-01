@@ -43,7 +43,7 @@ object Ui extends Logging {
         import com.michalrus.nofatty.chart._
         val cs = timed("creating charts") { List(EnergyIntake, StackedRatios, FatCarbohydrate) }
         timed(s"loading last $ChartDays days into plots") {
-          val days = (0 until ChartDays).toVector.reverse map today.minusDays map (d ⇒ (d, Days.find(d))) dropWhile (_._2.isEmpty)
+          val days = Days.between(today minusDays ChartDays, today) map (d ⇒ (d.date, Some(d)))
           cs foreach (_.refresh(days))
         }
         cs

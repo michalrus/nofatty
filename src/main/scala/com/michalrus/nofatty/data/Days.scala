@@ -28,6 +28,19 @@ object Days {
     }
   }
 
+  def between(start: LocalDate, end: LocalDate): Seq[Day] = {
+    DB.db withSession { implicit session ⇒
+      val days = DB.days.filter(_.date >= start).filter(_.date <= end).run
+      val eps = DB.eatenProducts.filter(_.date >= start).filter(_.date <= end).run.groupBy(_._1)
+      days map {
+        case (date, lastMod, zone, wE, w) ⇒
+          Day(date, lastMod, zone, wE, w, eps.getOrElse(date, Seq.empty) map {
+            case (_, time, prod, gE, g) ⇒ EatenProduct(time, prod, gE, g)
+          })
+      }
+    }
+  }
+
   def commit(d: Day): Unit = {
     DB.db withTransaction { implicit session ⇒
       discard { DB.days.insertOrUpdate((d.date, d.lastModified, d.zone, d.weightExpr, d.weight)) }
