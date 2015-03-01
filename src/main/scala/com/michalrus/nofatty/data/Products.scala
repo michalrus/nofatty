@@ -69,9 +69,10 @@ object Products extends Logging {
           case (uuid, lastMod, name, kcalE, kcal, protE, prot, fatE, fat, carbE, carb, fibE, fib) ⇒
             BasicProduct(uuid, lastMod, name, NutritionalValue(kcal, prot, fat, carb, fib), kcalE, protE, fatE, carbE, fibE)
         }
+        val ingredients = DB.ingredients.run.groupBy(_._1)
         val compounds: Seq[Product] = DB.compoundProducts.run map {
           case (uuid, lastMod, name, massRed, massPreE, massPostE) ⇒
-            val ings = DB.ingredients.filter(_.compoundProductID === uuid).run map { case (_, subprod, gramsE, grams) ⇒ (subprod, (grams, gramsE)) }
+            val ings = ingredients.getOrElse(uuid, Seq.empty) map { case (_, subprod, gramsE, grams) ⇒ (subprod, (grams, gramsE)) }
             CompoundProduct(uuid, lastMod, name, massRed, massPreE, massPostE, ings.toMap)
         }
         (basics ++ compounds).map(p ⇒ (p.uuid, p)).toMap
