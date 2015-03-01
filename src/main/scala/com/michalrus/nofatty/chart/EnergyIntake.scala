@@ -5,7 +5,7 @@ import java.awt.BasicStroke
 import com.michalrus.nofatty.data.{ Day, EatenProduct }
 import org.jfree.chart.axis.NumberAxis
 import org.jfree.chart.plot.{ DatasetRenderingOrder, XYPlot }
-import org.jfree.chart.renderer.xy.{ XYSplineRenderer, StandardXYBarPainter, XYBarRenderer, XYLineAndShapeRenderer }
+import org.jfree.chart.renderer.xy.{ StandardXYBarPainter, XYBarRenderer, XYLineAndShapeRenderer }
 import org.jfree.chart.{ JFreeChart, StandardChartTheme }
 import org.jfree.data.time.TimeTableXYDataset
 import org.joda.time.LocalDate
@@ -34,6 +34,7 @@ object EnergyIntake extends Chart {
     plot.setDataset(0, energyDataset)
     plot.setRenderer(0, {
       val r = new XYBarRenderer(0.05)
+      r.setBarAlignmentFactor(0.5)
       r.setSeriesPaint(0, Blue)
       r.setBarPainter(new StandardXYBarPainter)
       r.setShadowVisible(false)
@@ -44,7 +45,7 @@ object EnergyIntake extends Chart {
 
     plot.setDataset(1, energyTrendDataset)
     plot.setRenderer(1, {
-      val r = new XYSplineRenderer()
+      val r = new BreakingXYSplineRenderer()
       r.setSeriesPaint(0, Blue)
       r.setSeriesShapesVisible(0, false)
       r.setSeriesStroke(0, new BasicStroke(2))
@@ -65,7 +66,7 @@ object EnergyIntake extends Chart {
 
     plot.setDataset(3, weightTrendDataset)
     plot.setRenderer(3, {
-      val r = new XYSplineRenderer()
+      val r = new BreakingXYSplineRenderer()
       r.setSeriesPaint(0, Red)
       r.setSeriesShapesVisible(0, false)
       r.setSeriesStroke(0, new BasicStroke(2))
@@ -86,18 +87,18 @@ object EnergyIntake extends Chart {
         weightDataset.remove(date, Weight)
         day foreach { day ⇒
           val nv = EatenProduct.sum(day.eatenProducts)
-          energyDataset.add(date, nv.kcal, Energy)
+          if (day.eatenProducts.nonEmpty) energyDataset.add(date, nv.kcal, Energy)
           day.weight foreach (w ⇒ weightDataset.add(date, w, Weight))
         }
     }
 
     weightTrendDataset.clear()
-    Trend.exponentialMovingAverage(0.25, Trend.spline1(datasetToVector(weightDataset, 0))) foreach {
+    Trend.exponentialMovingAverage(0.250, Trend.spline1(datasetToVector(weightDataset, 0))).flatten foreach {
       case (date, value) ⇒ weightTrendDataset.add(date, value, WeightTrend)
     }
 
     energyTrendDataset.clear()
-    Trend.exponentialMovingAverage(0.1, Trend.spline1(datasetToVector(energyDataset, 0))) foreach {
+    Trend.exponentialMovingAverage(0.125, datasetToVector(energyDataset, 0)).map(xs ⇒ xs :+ ((xs.last._1 plusDays 1, Double.NaN))).flatten foreach {
       case (date, value) ⇒ energyTrendDataset.add(date, value, EnergyTrend)
     }
   }

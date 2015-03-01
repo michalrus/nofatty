@@ -20,26 +20,31 @@ object Trend {
     }
   }
 
-  def exponentialMovingAverage(alpha: Double, data: Vector[(LocalDate, Double)]): Vector[(LocalDate, Double)] = {
-    require(alpha > 0.0 && alpha < 1.0, "<alpha> has to be in (0.0, 1.0)")
-    if (data.isEmpty) Vector.empty
-    else {
-      val normD = {
-        val xs = data map { case (date, v) ⇒ (date, Days.daysBetween(Epoch, date).getDays, v) }
-        val today = xs.map(_._2).max
-        xs map { case (date, day, v) ⇒ (date, today - day, v) }
-      }
-      val today = normD.minBy(_._2)._1
+  def segments(data: Vector[(LocalDate, Double)]): Vector[Vector[(LocalDate, Double)]] = {
+    val days = data map { case (d, _) ⇒ Days.daysBetween(Epoch, d).getDays }
+    val map = data.toMap.mapValues(Some(_)).withDefault(_ ⇒ None)
+    val start = days.min
+    val end = days.max
+    segmentsO((start to end).toVector map Epoch.plusDays map (d ⇒ map(d) map (v ⇒ (d, v))))
+  }
 
-      def coeff(exponent: Int) = math.pow(1 - alpha, exponent.toDouble)
-
-      (normD map (_._2)) map { emaDay ⇒
-        val filtered = normD filter (_._2 >= emaDay)
-        val numer = filtered map { case (_, day, v) ⇒ coeff(day - emaDay) * v }
-        val denom = filtered map { case (_, day, _) ⇒ coeff(day - emaDay) }
-        (today.minusDays(emaDay), numer.sum / denom.sum)
+  def segmentsO[T](data: Vector[Option[T]]): Vector[Vector[T]] = {
+    def loop(xs: Vector[Option[T]], acc: Vector[Vector[T]]): Vector[Vector[T]] = {
+      val trimmed = xs.dropWhile(_.isEmpty)
+      if (trimmed.isEmpty) acc
+      else {
+        val segment = trimmed.takeWhile(_.isDefined).flatten
+        val rest = trimmed.dropWhile(_.isDefined)
+        loop(rest, acc :+ segment)
       }
     }
+    loop(data, Vector.empty)
   }
+
+  def exponentialMovingAverage(alpha: Double, data: Vector[(LocalDate, Double)]): Vector[Vector[(LocalDate, Double)]] =
+    segments(data) map {
+      case head +: tail ⇒ // safe, segments will always be non-empty
+        tail.scanLeft(head) { case ((_, acc), (date, value)) ⇒ (date, alpha * value + (1 - alpha) * acc) }
+    }
 
 }
