@@ -3,6 +3,8 @@ package com.michalrus.nofatty.data
 import java.util.UUID
 import java.util.concurrent.atomic.AtomicReference
 
+import com.typesafe.scalalogging.StrictLogging
+
 import scala.slick.driver.SQLiteDriver.simple._
 import org.joda.time.{ LocalDate, DateTime }
 
@@ -60,10 +62,11 @@ final case class CompoundProduct(uuid: UUID, lastModified: DateTime, name: Strin
       (ingredients.keySet flatMap Products.find collect { case cp: CompoundProduct ⇒ cp } exists (_ ingredientsContain subproduct))
 }
 
-object Products {
+object Products extends StrictLogging {
 
   private[this] val memo = new AtomicReference[Map[UUID, Product]]({
-    DB.db withSession { implicit session ⇒
+    logger.info("loading Products")
+    val r = DB.db withSession { implicit session ⇒
       val basics: Seq[Product] = DB.basicProducts.run map {
         case (uuid, lastMod, name, kcalE, kcal, protE, prot, fatE, fat, carbE, carb, fibE, fib) ⇒
           BasicProduct(uuid, lastMod, name, NutritionalValue(kcal, prot, fat, carb, fib), kcalE, protE, fatE, carbE, fibE)
@@ -75,6 +78,8 @@ object Products {
       }
       (basics ++ compounds).map(p ⇒ (p.uuid, p)).toMap
     }
+    logger.info("loaded Products")
+    r
   })
 
   def names: Map[String, UUID] = memo.get map { case (u, p) ⇒ (p.name, u) }

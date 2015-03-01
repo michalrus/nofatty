@@ -10,7 +10,8 @@ lazy val root = (
       D.JodaTime, D.JodaConvert,
       D.Parboiled,
       D.SQLite,
-      D.Slick, D.Slf4j
+      D.Slick,
+      D.Logback, D.ScalaLogging
     )
-  )
+  ) enablePlugins JavaAppPackaging
 )

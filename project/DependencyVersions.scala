@@ -7,5 +7,6 @@ object V {
   val Parboiled = "1.1.7"
   val SQLite = "3.8.7"
   val Slick = "2.1.0"
-  val Slf4j = "1.7.10"
+  val ScalaLogging = "3.1.0"
+  val Logback = "1.1.2"
 }

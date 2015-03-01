@@ -21,11 +21,14 @@ object Trend {
   }
 
   def segments(data: Vector[(LocalDate, Double)]): Vector[Vector[(LocalDate, Double)]] = {
-    val days = data map { case (d, _) ⇒ Days.daysBetween(Epoch, d).getDays }
-    val map = data.toMap.mapValues(Some(_)).withDefault(_ ⇒ None)
-    val start = days.min
-    val end = days.max
-    segmentsO((start to end).toVector map Epoch.plusDays map (d ⇒ map(d) map (v ⇒ (d, v))))
+    if (data.isEmpty) Vector.empty
+    else {
+      val days = data map { case (d, _) ⇒ Days.daysBetween(Epoch, d).getDays }
+      val map = data.toMap.mapValues(Some(_)).withDefault(_ ⇒ None)
+      val start = days.min
+      val end = days.max
+      segmentsO((start to end).toVector map Epoch.plusDays map (d ⇒ map(d) map (v ⇒ (d, v))))
+    }
   }
 
   def segmentsO[T](data: Vector[Option[T]]): Vector[Vector[T]] = {

@@ -9,7 +9,8 @@ object D {
   val Parboiled = "org.parboiled" %% "parboiled-scala" % V.Parboiled
   val SQLite = "org.xerial" % "sqlite-jdbc" % V.SQLite
   val Slick = "com.typesafe.slick" %% "slick" % V.Slick
-  val Slf4j = "org.slf4j" % "slf4j-nop" % V.Slf4j
+  val Logback = "ch.qos.logback" % "logback-classic" % V.Logback
+  val ScalaLogging = "com.typesafe.scala-logging" %% "scala-logging" % V.ScalaLogging
 }
 
 object R {
