@@ -3,47 +3,65 @@ package com.michalrus.nofatty.ui
 import java.awt.{ BorderLayout, Dimension }
 import javax.swing._
 
-import com.michalrus.nofatty.data.Days
+import com.michalrus.nofatty.Logging
+import com.michalrus.nofatty.data.{ Products, Days }
 import com.michalrus.nofatty.ui.utils._
 import org.jfree.chart.ChartPanel
 import org.joda.time.LocalDate
 
-object Ui {
+object Ui extends Logging {
 
   val ChartDays = 100
 
-  def initialize(): Unit = {
-    edt {
-      UIManager.setLookAndFeel(UIManager.getSystemLookAndFeelClassName)
+  def initialize(): Unit = edt {
+    timed("initializing the UI") {
+      val f = timed("creating the frame") {
+        UIManager.setLookAndFeel(UIManager.getSystemLookAndFeelClassName)
 
-      val f = new JFrame
-      f.setTitle("nofatty")
-      f.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE)
-      f.setSize(new Dimension(950, 750))
-      f.setMinimumSize(f.getSize)
-      f.setLayout(new BorderLayout)
-      f.setLocationRelativeTo(Unsafe.NullComponent)
+        val f = new JFrame
+        f.setTitle("nofatty")
+        f.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE)
+        f.setSize(new Dimension(950, 750))
+        f.setMinimumSize(f.getSize)
+        f.setLayout(new BorderLayout)
+        f.setLocationRelativeTo(Unsafe.NullComponent)
 
-      val ltv = new JTabbedPane()
-      f.add(ltv, BorderLayout.LINE_START)
+        f
+      }
 
-      val today = LocalDate.now
+      val ltv = timed("creating the left tabbed view") {
+        val ltv = new JTabbedPane()
+        f.add(ltv, BorderLayout.LINE_START)
+        ltv
+      }
+
+      val today = timed("loading joda-time") { LocalDate.now }
+
+      val _ = Products
 
       val charts = {
         import com.michalrus.nofatty.chart._
-        val cs = List(EnergyIntake, StackedRatios, FatCarbohydrate)
-        val days = (0 until ChartDays).toVector.reverse map today.minusDays map (d ⇒ (d, Days.find(d))) dropWhile (_._2.isEmpty)
-        cs foreach (_.refresh(days))
+        val cs = timed("creating charts") { List(EnergyIntake, StackedRatios, FatCarbohydrate) }
+        timed(s"loading last $ChartDays days into plots") {
+          val days = (0 until ChartDays).toVector.reverse map today.minusDays map (d ⇒ (d, Days.find(d))) dropWhile (_._2.isEmpty)
+          cs foreach (_.refresh(days))
+        }
         cs
       }
 
-      val inputPane = new InputPane(date ⇒ charts foreach (_.refresh(Seq((date, Days.find(date))))))
-      ltv.addTab("Daily input", inputPane)
-      ltv.addTab("Products", new ProductListPane({ editedUuid ⇒
-        val days = Days.usingProduct(editedUuid) filter (org.joda.time.Days.daysBetween(_, today).getDays < ChartDays) map (d ⇒ (d, Days find d))
-        charts foreach (_.refresh(days))
-        inputPane.refresh()
-      }))
+      val inputPane = timed("creating InputPane") {
+        val inputPane = new InputPane(date ⇒ charts foreach (_.refresh(Seq((date, Days.find(date))))))
+        ltv.addTab("Daily input", inputPane)
+        inputPane
+      }
+
+      timed("creating ProductListPane") {
+        ltv.addTab("Products", new ProductListPane({ editedUuid ⇒
+          val days = Days.usingProduct(editedUuid) filter (org.joda.time.Days.daysBetween(_, today).getDays < ChartDays) map (d ⇒ (d, Days find d))
+          charts foreach (_.refresh(days))
+          inputPane.refresh()
+        }))
+      }
 
       def rtv(select: Int): JTabbedPane = {
         val r = new JTabbedPane()
@@ -52,14 +70,19 @@ object Ui {
         r
       }
 
-      val split = new JSplitPane(JSplitPane.VERTICAL_SPLIT, rtv(0), rtv(1))
-      split.setContinuousLayout(true)
-      split.setResizeWeight(0.5)
-      f.add(split, BorderLayout.CENTER)
+      val split = timed("creating ChartPanels") {
+        val split = new JSplitPane(JSplitPane.VERTICAL_SPLIT, rtv(0), rtv(1))
+        split.setContinuousLayout(true)
+        split.setResizeWeight(0.5)
+        f.add(split, BorderLayout.CENTER)
+        split
+      }
 
-      f.setVisible(true)
-      split.setDividerLocation(0.5)
-      ltv.setPreferredSize(new Dimension(360, 0))
+      timed("displaying the frame") {
+        f.setVisible(true)
+        split.setDividerLocation(0.5)
+        ltv.setPreferredSize(new Dimension(360, 0))
+      }
     }
   }
 
