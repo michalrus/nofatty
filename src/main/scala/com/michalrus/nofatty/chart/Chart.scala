@@ -3,6 +3,7 @@ package com.michalrus.nofatty.chart
 import java.awt.Color
 import java.awt.geom.Ellipse2D
 import java.text.{ NumberFormat, SimpleDateFormat }
+import java.util.concurrent.atomic.AtomicReference
 
 import com.michalrus.nofatty.data.Day
 import org.jfree.chart.JFreeChart
@@ -29,6 +30,9 @@ object Chart {
   val Blue = new Color(0, 0, 0xFF, 0x7F)
   val Green = new Color(0, 0x7F, 0, 0x7F)
   val Yellow = new Color(0xFF, 0xFF, 0, 0x7F)
+
+  val weightAlpha = new AtomicReference(0.25)
+  val energyAlpha = new AtomicReference(0.13)
 
   def setTimeDomain(p: XYPlot): Unit =
     p.setDomainAxis({

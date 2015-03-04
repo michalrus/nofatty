@@ -93,12 +93,12 @@ object EnergyIntake extends Chart {
     }
 
     weightTrendDataset.clear()
-    Trend.exponentialMovingAverage(0.250, Trend.spline1(datasetToVector(weightDataset, 0))).flatten foreach {
+    Trend.exponentialMovingAverage(weightAlpha.get, Trend.spline1(datasetToVector(weightDataset, 0))).flatten foreach {
       case (date, value) ⇒ weightTrendDataset.add(date, value, WeightTrend)
     }
 
     energyTrendDataset.clear()
-    Trend.exponentialMovingAverage(0.125, datasetToVector(energyDataset, 0)).map(xs ⇒ xs :+ ((xs.last._1 plusDays 1, Double.NaN))).flatten foreach {
+    Trend.exponentialMovingAverage(energyAlpha.get, datasetToVector(energyDataset, 0)).map(xs ⇒ xs :+ ((xs.last._1 plusDays 1, Double.NaN))).flatten foreach {
       case (date, value) ⇒ energyTrendDataset.add(date, value, EnergyTrend)
     }
   }

@@ -4,6 +4,7 @@ import java.awt.{ BorderLayout, Dimension }
 import javax.swing._
 
 import com.michalrus.nofatty.Logging
+import com.michalrus.nofatty.chart.Chart
 import com.michalrus.nofatty.data.{ Products, Days }
 import com.michalrus.nofatty.ui.utils._
 import org.jfree.chart.ChartPanel
@@ -17,6 +18,9 @@ object Ui extends Logging {
     timed("initializing the UI") {
       val f = timed("creating the frame") {
         UIManager.setLookAndFeel(UIManager.getSystemLookAndFeelClassName)
+
+        { val _ = UIManager.getLookAndFeelDefaults.put("Slider.paintValue", false) }
+        { val _ = UIManager.put("Slider.paintValue", false) }
 
         val f = new JFrame
         f.setTitle("nofatty")
@@ -61,6 +65,13 @@ object Ui extends Logging {
           charts foreach (_.refresh(days))
           inputPane.refresh()
         }))
+      }
+
+      timed("creating PrefsPane") {
+        ltv.addTab("Prefs", new PrefsPane(
+          1.0 - Chart.weightAlpha.get, 1.0 - Chart.energyAlpha.get,
+          a ⇒ { Chart.weightAlpha.set(1.0 - a); charts.foreach(_ refresh Nil) },
+          a ⇒ { Chart.energyAlpha.set(1.0 - a); charts.foreach(_ refresh Nil) }))
       }
 
       def rtv(select: Int): JTabbedPane = {
