@@ -30,6 +30,10 @@ object Ui extends Logging {
         f.setLayout(new BorderLayout)
         f.setLocationRelativeTo(Unsafe.NullComponent)
 
+        Option(getClass.getResource("/icon.png")) foreach { ic ⇒
+          f.setIconImage(new ImageIcon(ic).getImage)
+        }
+
         f
       }
 
