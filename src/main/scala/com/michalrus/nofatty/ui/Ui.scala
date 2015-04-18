@@ -1,6 +1,6 @@
 package com.michalrus.nofatty.ui
 
-import java.awt.{ BorderLayout, Dimension }
+import java.awt.{ Toolkit, BorderLayout, Dimension }
 import javax.swing._
 
 import com.michalrus.nofatty.Logging
@@ -21,6 +21,16 @@ object Ui extends Logging {
 
         { val _ = UIManager.getLookAndFeelDefaults.put("Slider.paintValue", false) }
         { val _ = UIManager.put("Slider.paintValue", false) }
+
+        try {
+          val xToolkit = Toolkit.getDefaultToolkit
+          val awtAppClassNameField = xToolkit.getClass.getDeclaredField("awtAppClassName")
+          awtAppClassNameField.setAccessible(true)
+          awtAppClassNameField.set(xToolkit, "nofatty")
+        }
+        catch {
+          case _: NoSuchFieldException ⇒
+        }
 
         val f = new JFrame
         f.setTitle("nofatty")
