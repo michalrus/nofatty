@@ -487,7 +487,10 @@ class ProductListPane(onProductEdited: UUID ⇒ Unit) extends JPanel {
       jp.setOpaque(false)
       jp.setLayout(new BorderLayout)
       jp.add(filter, BorderLayout.CENTER)
-      edt { addButton.setPreferredSize(new Dimension(addButton.getHeight, 0)) }
+      edt {
+        addButton.setPreferredSize(new Dimension(addButton.getHeight, 0))
+        addButton.setMargin(new Insets(0, 0, 0, 0))
+      }
       jp.add(addButton, BorderLayout.LINE_END)
       jp
     }, c)

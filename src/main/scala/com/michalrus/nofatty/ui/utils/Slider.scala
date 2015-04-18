@@ -27,6 +27,7 @@ class Slider(range: NumericRange[Double], initial: Double, label: String, render
   lValue.setText(render(initial))
 
   {
+    slider.setOpaque(false)
     setOpaque(false)
     setLayout(new GridBagLayout)
     val c = new GridBagConstraints()
