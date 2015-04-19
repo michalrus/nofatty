@@ -33,6 +33,7 @@ object Chart {
 
   val weightAlpha = new AtomicReference(0.25)
   val energyAlpha = new AtomicReference(0.13)
+  val energyMarker = new AtomicReference(2000.0)
 
   def setTimeDomain(p: XYPlot): Unit =
     p.setDomainAxis({

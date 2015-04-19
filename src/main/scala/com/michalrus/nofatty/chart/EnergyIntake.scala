@@ -1,10 +1,10 @@
 package com.michalrus.nofatty.chart
 
-import java.awt.BasicStroke
+import java.awt.{ Color, BasicStroke }
 
 import com.michalrus.nofatty.data.{ Day, EatenProduct }
 import org.jfree.chart.axis.NumberAxis
-import org.jfree.chart.plot.{ DatasetRenderingOrder, XYPlot }
+import org.jfree.chart.plot.{ DatasetRenderingOrder, ValueMarker, XYPlot }
 import org.jfree.chart.renderer.xy.{ StandardXYBarPainter, XYBarRenderer, XYLineAndShapeRenderer }
 import org.jfree.chart.{ JFreeChart, StandardChartTheme }
 import org.jfree.data.time.TimeTableXYDataset
@@ -16,6 +16,8 @@ object EnergyIntake extends Chart {
   override val title: String = "Energy intake"
 
   private[this] val energyDataset, energyTrendDataset, weightDataset, weightTrendDataset = new TimeTableXYDataset()
+
+  private[this] val energyMarker = new ValueMarker(0.0)
 
   override val chart: JFreeChart = {
     val plot = new XYPlot
@@ -77,6 +79,9 @@ object EnergyIntake extends Chart {
 
     plot.setDatasetRenderingOrder(DatasetRenderingOrder.REVERSE)
 
+    energyMarker.setPaint(Color.BLACK)
+    plot.addRangeMarker(energyMarker)
+
     c
   }
 
@@ -101,5 +106,7 @@ object EnergyIntake extends Chart {
     Trend.exponentialMovingAverage(energyAlpha.get, datasetToVector(energyDataset, 0)).map(xs ⇒ xs :+ ((xs.last._1 plusDays 1, Double.NaN))).flatten foreach {
       case (date, value) ⇒ energyTrendDataset.add(date, value, EnergyTrend)
     }
+
+    energyMarker.setValue(Chart.energyMarker.get)
   }
 }

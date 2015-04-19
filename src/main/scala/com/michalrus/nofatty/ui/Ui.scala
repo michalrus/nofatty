@@ -83,9 +83,11 @@ object Ui extends Logging {
 
       timed("creating PrefsPane") {
         ltv.addTab("Prefs", new PrefsPane(
-          1.0 - Chart.weightAlpha.get, 1.0 - Chart.energyAlpha.get,
+          1.0 - Chart.weightAlpha.get, 1.0 - Chart.energyAlpha.get, Chart.energyMarker.get,
           a ⇒ { Chart.weightAlpha.set(1.0 - a); charts.foreach(_ refresh Nil) },
-          a ⇒ { Chart.energyAlpha.set(1.0 - a); charts.foreach(_ refresh Nil) }))
+          a ⇒ { Chart.energyAlpha.set(1.0 - a); charts.foreach(_ refresh Nil) },
+          a ⇒ { Chart.energyMarker.set(a); charts.foreach(_ refresh Nil) }
+        ))
       }
 
       def rtv(select: Int): JTabbedPane = {
