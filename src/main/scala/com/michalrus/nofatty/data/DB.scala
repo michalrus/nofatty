@@ -2,7 +2,7 @@ package com.michalrus.nofatty.data
 
 import java.util.UUID
 
-import org.joda.time.{ LocalTime, DateTime, DateTimeZone, LocalDate }
+import org.joda.time.{ DateTime, DateTimeZone, LocalDate, LocalTime }
 
 import scala.slick.driver.SQLiteDriver.simple._
 import scala.slick.jdbc.JdbcBackend.Database
@@ -34,18 +34,38 @@ object DB {
 
   lazy val db = Database.forURL(s"jdbc:sqlite:$DBFile", driver = "org.sqlite.JDBC")
 
+  val version = db withSession { implicit sess ⇒
+    import slick.jdbc.{ StaticQuery ⇒ Q }
+    Q.queryNA[Int]("PRAGMA user_version").first
+  }
+
   val basicProducts = TableQuery[BasicProducts]
   val ingredients = TableQuery[Ingredients]
   val compoundProducts = TableQuery[CompoundProducts]
   val days = TableQuery[Days]
   val eatenProducts = TableQuery[EatenProducts]
+  val prefs = TableQuery[Prefs]
 
-  if (!new java.io.File(DBFile).exists)
-    db withSession { implicit session ⇒
-      (basicProducts.ddl ++ ingredients.ddl ++ compoundProducts.ddl ++ days.ddl ++ eatenProducts.ddl).create
+  db withSession { implicit session ⇒
+    def updateV(v: Int): Unit = {
+      val _ = slick.jdbc.StaticQuery.updateNA(s"PRAGMA user_version = $v").first
     }
 
+    if (!new java.io.File(DBFile).exists)
+      (prefs.ddl ++ basicProducts.ddl ++ ingredients.ddl ++ compoundProducts.ddl ++ days.ddl ++ eatenProducts.ddl).create
+    else if (version == 0) {
+      prefs.ddl.create
+      updateV(1)
+    }
+  }
+
   import Types._
+
+  final class Prefs(tag: Tag) extends Table[(String, String)](tag, "prefs") {
+    def key = column[String]("key", O.PrimaryKey)
+    def value = column[String]("value")
+    override def * = (key, value)
+  }
 
   final class BasicProducts(tag: Tag) extends Table[(UUID, DateTime, String, String, Double, String, Double, String, Double, String, Double, String, Double)](tag, "basic_products") {
     def uuid = column[UUID]("uuid", O.PrimaryKey)

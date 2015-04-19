@@ -4,21 +4,22 @@ import java.awt.{ GridLayout, BorderLayout }
 import javax.swing.JPanel
 import javax.swing.border.EmptyBorder
 
+import com.michalrus.nofatty.data.Prefs
 import com.michalrus.nofatty.ui.utils.Slider
 
-class PrefsPane(initialWeight: Double, initialEnergy: Double, initialEnergyValueMarker: Double,
-                onWeightSmoothing: Double ⇒ Unit,
-                onEnergySmoothing: Double ⇒ Unit,
-                onEnergyValueMarker: Double ⇒ Unit) extends JPanel {
+class PrefsPane(onChange: ⇒ Unit) extends JPanel {
 
-  val weightSmoothing = new Slider(0.20 to 0.95 by 0.01, initialWeight, "Weight trend smoothing",
-    d ⇒ f"${d * 100.0}%.0f%%", onWeightSmoothing, onWeightSmoothing)
+  def updateMod(pref: Prefs.Pref[Double], mod: Double ⇒ Double): Double ⇒ Unit = v ⇒ { pref.set(mod(v)); onChange }
+  def update(pref: Prefs.Pref[Double]) = updateMod(pref, identity)
 
-  val energySmoothing = new Slider(0.20 to 0.95 by 0.01, initialEnergy, "Energy trend smoothing",
-    d ⇒ f"${d * 100.0}%.0f%%", onEnergySmoothing, onEnergySmoothing)
+  val weightSmoothing = new Slider(0.20 to 0.95 by 0.01, 1.0 - Prefs.weightAlpha.get, "Weight trend smoothing",
+    d ⇒ f"${d * 100.0}%.0f%%", updateMod(Prefs.weightAlpha, 1.0 - _), updateMod(Prefs.weightAlpha, 1.0 - _))
 
-  val energyValueMarker = new Slider(0.0 to 6000.0 by 1.0, initialEnergyValueMarker, "Energy value marker",
-    d ⇒ f"$d%.0f kcal", onEnergyValueMarker, onEnergyValueMarker)
+  val energySmoothing = new Slider(0.20 to 0.95 by 0.01, 1.0 - Prefs.energyAlpha.get, "Energy trend smoothing",
+    d ⇒ f"${d * 100.0}%.0f%%", updateMod(Prefs.energyAlpha, 1.0 - _), updateMod(Prefs.energyAlpha, 1.0 - _))
+
+  val energyValueMarker = new Slider(0.0 to 6000.0 by 1.0, Prefs.energyMarker.get, "Energy value marker",
+    d ⇒ f"$d%.0f kcal", update(Prefs.energyMarker), update(Prefs.energyMarker))
 
   setOpaque(false)
 

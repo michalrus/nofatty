@@ -2,7 +2,7 @@ package com.michalrus.nofatty.chart
 
 import java.awt.BasicStroke
 
-import com.michalrus.nofatty.data.{ Day, EatenProduct }
+import com.michalrus.nofatty.data.{ Prefs, Day, EatenProduct }
 import org.jfree.chart.axis.NumberAxis
 import org.jfree.chart.plot.{ DatasetRenderingOrder, ValueMarker, XYPlot }
 import org.jfree.chart.renderer.xy.{ StandardXYBarPainter, XYBarRenderer, XYLineAndShapeRenderer }
@@ -99,15 +99,15 @@ object EnergyIntake extends Chart {
     }
 
     weightTrendDataset.clear()
-    Trend.exponentialMovingAverage(weightAlpha.get, Trend.spline1(datasetToVector(weightDataset, 0))).flatten foreach {
+    Trend.exponentialMovingAverage(Prefs.weightAlpha.get, Trend.spline1(datasetToVector(weightDataset, 0))).flatten foreach {
       case (date, value) ⇒ weightTrendDataset.add(date, value, WeightTrend)
     }
 
     energyTrendDataset.clear()
-    Trend.exponentialMovingAverage(energyAlpha.get, datasetToVector(energyDataset, 0)).map(xs ⇒ xs :+ ((xs.last._1 plusDays 1, Double.NaN))).flatten foreach {
+    Trend.exponentialMovingAverage(Prefs.energyAlpha.get, datasetToVector(energyDataset, 0)).map(xs ⇒ xs :+ ((xs.last._1 plusDays 1, Double.NaN))).flatten foreach {
       case (date, value) ⇒ energyTrendDataset.add(date, value, EnergyTrend)
     }
 
-    energyMarker.setValue(Chart.energyMarker.get)
+    energyMarker.setValue(Prefs.energyMarker.get)
   }
 }
