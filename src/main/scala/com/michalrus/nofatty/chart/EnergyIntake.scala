@@ -1,6 +1,6 @@
 package com.michalrus.nofatty.chart
 
-import java.awt.{ Color, BasicStroke }
+import java.awt.BasicStroke
 
 import com.michalrus.nofatty.data.{ Day, EatenProduct }
 import org.jfree.chart.axis.NumberAxis
@@ -79,7 +79,8 @@ object EnergyIntake extends Chart {
 
     plot.setDatasetRenderingOrder(DatasetRenderingOrder.REVERSE)
 
-    energyMarker.setPaint(Color.BLACK)
+    energyMarker.setPaint(Black)
+    energyMarker.setStroke(new BasicStroke(2))
     plot.addRangeMarker(energyMarker)
 
     c

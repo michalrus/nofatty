@@ -30,6 +30,7 @@ object Chart {
   val Blue = new Color(0, 0, 0xFF, 0x7F)
   val Green = new Color(0, 0x7F, 0, 0x7F)
   val Yellow = new Color(0xFF, 0xFF, 0, 0x7F)
+  val Black = new Color(0, 0, 0, 0x7F)
 
   val weightAlpha = new AtomicReference(0.25)
   val energyAlpha = new AtomicReference(0.13)
